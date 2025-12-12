@@ -49,7 +49,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/v1/emp") 
 public class EmpController {
 
-    private final SalesItemServiceImpl salesItemServiceImpl;
+    private final SalesItemServiceImpl salesItemServiceImpl; // 필요없는 주입
     
     private final EmpService empService;
     public final AuthenticationManager authManager;
