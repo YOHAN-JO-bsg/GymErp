@@ -53,8 +53,8 @@ public class SecurityConfig {
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-    
-    
+
+
     @Bean
     AuthenticationManager authenticationManager(HttpSecurity http,
                                                PasswordEncoder encoder,   // ← 여기만 PasswordEncoder로
@@ -65,15 +65,19 @@ public class SecurityConfig {
                    .and()
                    .build();
     }
-    
-    // REACT(React:5173)에서의 요청 허용
+
+    // REACT(React:5173) 및 배포 서버에서의 요청 허용
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // Vite 개발 서버
-        // Swagger (Spring 내부)
-        config.setAllowedOrigins(List.of("http://localhost:5173","http://localhost:9000", "https://dumbi.store")); 
+        // 🔹 엉뚱한 dumbi.store를 지우고 요한님의 yoman.store로 교체!
+        config.setAllowedOrigins(List.of(
+                "http://localhost:5173",
+                "http://localhost:9000",
+                "http://yoman.store",
+                "https://yoman.store"
+        ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
