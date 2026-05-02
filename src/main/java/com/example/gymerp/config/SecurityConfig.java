@@ -36,7 +36,15 @@ public class SecurityConfig {
             	.requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll() 
                 .requestMatchers(SWAGGER).permitAll() // Swagger 허용
                 .requestMatchers("/upload/**").permitAll()
-                .requestMatchers("/v1/emp/login", "/v1/emp/logout", "/v1/member/**", "/v1/sales/**").permitAll() // 로그인 허용
+                    .requestMatchers(
+                            "/v1/emp/**", "/api/v1/emp/**",
+                            "/v1/member/**", "/api/v1/member/**",
+                            "/v1/sales/**", "/api/v1/sales/**",
+                            "/v1/voucher/**", "/api/v1/voucher/**",
+                            "/v1/pt/**", "/api/v1/pt/**",
+                            "/v1/performance/**", "/api/v1/performance/**",
+                            "/v1/home/**", "/api/v1/home/**"
+                    ).permitAll()
 
                 .requestMatchers("/v1/pt/**").permitAll()     // Swagger 테스트용 PT API 허용
                 .requestMatchers("/v1/schedule/**").permitAll() // 일정 관련 API Swagger 테스트 허용
@@ -66,20 +74,21 @@ public class SecurityConfig {
                    .build();
     }
 
-    // REACT(React:5173) 및 배포 서버에서의 요청 허용
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // 🔹 엉뚱한 dumbi.store를 지우고 요한님의 yoman.store로 교체!
-        config.setAllowedOrigins(List.of(
+        config.setAllowedOriginPatterns(List.of(
                 "http://localhost:5173",
                 "http://localhost:9000",
                 "http://yoman.store",
-                "https://yoman.store"
+                "https://yoman.store",
+                "http://3.36.225.219" // 🌟 요한님의 EC2 공인 IP도 명시적으로 추가
         ));
+
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Cache-Control"));
+        config.setExposedHeaders(List.of("Set-Cookie", "Authorization")); // 🌟 브라우저가 쿠키를 읽을 수 있게 노출
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
