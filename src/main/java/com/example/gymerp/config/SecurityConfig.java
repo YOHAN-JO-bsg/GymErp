@@ -43,7 +43,9 @@ public class SecurityConfig {
                             "/v1/voucher/**", "/api/v1/voucher/**",
                             "/v1/pt/**", "/api/v1/pt/**",
                             "/v1/performance/**", "/api/v1/performance/**",
-                            "/v1/home/**", "/api/v1/home/**"
+                            "/v1/home/**", "/api/v1/home/**",
+                            "/v1/analytics/**", "/api/v1/analytics/**",
+                            "/v1/schedule/**", "/api/v1/schedule/**"
                     ).permitAll()
 
                 .requestMatchers("/v1/pt/**").permitAll()     // Swagger 테스트용 PT API 허용
