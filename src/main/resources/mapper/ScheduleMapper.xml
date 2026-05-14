@@ -6,82 +6,82 @@
 
   <!-- ====================== 공통 ResultMap ====================== -->
   <resultMap id="ScheduleMap" type="com.example.gymerp.dto.ScheduleDto">
-    <id property="shNum" column="shNum"/>
-    <result property="empNum" column="empNum"/>
-    <result property="codeBid" column="codeBid"/>
-    <result property="startTime" column="startTime"/>
-    <result property="endTime" column="endTime"/>
+    <id property="shNum" column="shnum"/>
+    <result property="empNum" column="empnum"/>
+    <result property="codeBid" column="codebid"/>
+    <result property="startTime" column="starttime"/>
+    <result property="endTime" column="endtime"/>
     <result property="memo" column="memo"/>
-    <result property="codeBName" column="codeBName"/>
-    <result property="empName" column="empName"/>
-    <result property="memName" column="memName"/>
-    <result property="memNum" column="memNum"/>
+    <result property="codeBName" column="codebname"/>
+    <result property="empName" column="empname"/>
+    <result property="memName" column="memname"/>
+    <result property="memNum" column="memnum"/>
   </resultMap>
 
   <!-- ====================== 전체 일정 조회 ====================== -->
   <select id="selectAll" resultMap="ScheduleMap">
-    SELECT
-      s.shNum, s.empNum, s.codeBid, s.startTime, s.endTime, s.memo,
-      e.empName, cb.name AS codeBName, m.memName, s.memNum
-    FROM SCHEDULE s
-	  JOIN Employee e ON s.empNum = e.empNum
-	  LEFT JOIN CodeB cb ON s.codeBid = cb.codeBid
-	  LEFT JOIN Member m ON s.memNum = m.memNum
-    ORDER BY s.startTime ASC
+    select
+      s.shnum, s.empnum, s.codebid, s.starttime, s.endtime, s.memo,
+      e.empname, cb.name as codebname, m.memname, s.memnum
+    from schedule s
+	  join employee e on s.empnum = e.empnum
+	  left join codeb cb on s.codebid = cb.codebid
+	  left join member m on s.memnum = m.memnum
+    order by s.starttime asc
   </select>
 
   <!-- ====================== 단건 조회 ====================== -->
   <select id="selectByShNum" parameterType="int" resultMap="ScheduleMap">
-	  SELECT 
-	    s.shNum,
-	    s.empNum,
-	    s.codeBid,
-	    s.startTime,
-	    s.endTime,
+	  select 
+	    s.shnum,
+	    s.empnum,
+	    s.codebid,
+	    s.starttime,
+	    s.endtime,
 	    s.memo,
-	    e.empName,
-	    cb.name AS codeBName,
-	    s.memNum,       
-	    r.regNum AS regId,   
-	    m.memName
-	  FROM SCHEDULE s
-	    JOIN Employee e ON s.empNum = e.empNum
-	    LEFT JOIN CodeB cb ON s.codeBid = cb.codeBid
-	    LEFT JOIN Registration r ON s.shNum = r.shNum
-	    LEFT JOIN Member m ON s.memNum = m.memNum
-	  WHERE s.shNum = #{shNum}
+	    e.empname,
+	    cb.name as codebname,
+	    s.memnum,       
+	    r.regnum as regid,   
+	    m.memname
+	  from schedule s
+	    join employee e on s.empnum = e.empnum
+	    left join codeb cb on s.codebid = cb.codebid
+	    left join registration r on s.shnum = r.shnum
+	    left join member m on s.memnum = m.memnum
+	  where s.shnum = #{shNum}
 	</select>
 	
 	  <!-- ====================== 직원별 일정 조회 ====================== -->
   <select id="selectByEmpNum" parameterType="int" resultMap="ScheduleMap">
-    SELECT
-      s.shNum, s.empNum, s.codeBid, s.startTime, s.endTime, s.memo,
-      e.empName, cb.name AS codeBName, m.memName, s.memNum
-    FROM SCHEDULE s
-	  JOIN Employee e ON s.empNum = e.empNum
-	  LEFT JOIN CodeB cb ON s.codeBid = cb.codeBid
-	  LEFT JOIN Member m ON s.memNum = m.memNum
-    WHERE s.empNum = #{empNum}
-    ORDER BY s.startTime ASC
+    select
+      s.shnum, s.empnum, s.codebid, s.starttime, s.endtime, s.memo,
+      e.empname, cb.name as codebname, m.memname, s.memnum
+    from schedule s
+	  join employee e on s.empnum = e.empnum
+	  left join codeb cb on s.codebid = cb.codebid
+	  left join member m on s.memnum = m.memnum
+    where s.empnum = #{empNum}
+    order by s.starttime asc
   </select>
   <!-- ====================== 날짜 범위 조회 ====================== -->
   <select id="selectByDateRange" resultMap="ScheduleMap">
-    SELECT
-      s.shNum, s.empNum, s.codeBid, s.startTime, s.endTime, s.memo,
-      e.empName, cb.name AS codeBName, m.memName, s.memNum
-    FROM SCHEDULE s
-	  JOIN Employee e ON s.empNum = e.empNum
-	  LEFT JOIN CodeB cb ON s.codeBid = cb.codeBid
-	  LEFT JOIN Member m ON s.memNum = m.memNum
-    WHERE s.startTime BETWEEN #{startDate} AND #{endDate}
-    ORDER BY s.startTime ASC
+    select
+      s.shnum, s.empnum, s.codebid, s.starttime, s.endtime, s.memo,
+      e.empname, cb.name as codebname, m.memname, s.memnum
+    from schedule s
+	  join employee e on s.empnum = e.empnum
+	  left join codeb cb on s.codebid = cb.codebid
+	  left join member m on s.memnum = m.memnum
+    where s.starttime between #{startDate} and #{endDate}
+    order by s.starttime asc
   </select>
 
   <!-- ====================== 일정 등록 ====================== -->
   <insert id="insert" parameterType="com.example.gymerp.dto.ScheduleDto" useGeneratedKeys="true" keyProperty="shNum">
-    INSERT INTO SCHEDULE (
-      EMPNUM, CODEBID, STARTTIME, ENDTIME, MEMO
-    ) VALUES (
+    insert into schedule (
+      empnum, codebid, starttime, endtime, memo
+    ) values (
       #{empNum},
       #{codeBid, jdbcType=VARCHAR},
       #{startTime, jdbcType=TIMESTAMP},
@@ -92,88 +92,88 @@
 
   <!-- ====================== 일정 수정 ====================== -->
   <update id="update" parameterType="com.example.gymerp.dto.ScheduleDto">
-    UPDATE SCHEDULE
-    SET
-      empNum   = #{empNum},
-      codeBid  = #{codeBid, jdbcType=VARCHAR},
-      startTime= #{startTime},
-      endTime  = #{endTime},
+    update schedule
+    set
+      empnum   = #{empNum},
+      codebid  = #{codeBid, jdbcType=VARCHAR},
+      starttime= #{startTime},
+      endtime  = #{endTime},
       memo     = #{memo}
-    WHERE shNum = #{shNum}
+    where shnum = #{shNum}
   </update>
 
   <!-- ====================== 일정 삭제 ====================== -->
   <delete id="delete" parameterType="int">
-    DELETE FROM SCHEDULE WHERE shNum = #{shNum}
+    delete from schedule where shnum = #{shNum}
   </delete>
   
   <!-- 해당 직원의 휴가가 지정 구간과 겹치는지 카운트 -->
   <select id="countVacationOverlap" parameterType="map" resultType="int">
-    SELECT COUNT(*)
-    FROM SCHEDULE
-    WHERE empNum = #{empNum}
-      AND codeBid = 'VACATION'
-      AND startTime &lt;= #{endTime}
-      AND endTime   &gt;= #{startTime}
+    select count(*)
+    from schedule
+    where empnum = #{empNum}
+      and codebid = 'VACATION'
+      and starttime &lt;= #{endTime}
+      and endtime   &gt;= #{startTime}
   </select>
 
   <!-- (수정용) 자기 자신 shNum을 제외하고 겹치는지 카운트 -->
   <select id="countVacationOverlapExcludingSelf" parameterType="map" resultType="int">
-    SELECT COUNT(*)
-    FROM SCHEDULE
-    WHERE empNum = #{empNum}
-      AND codeBid = 'VACATION'
-      AND shNum  &lt;&gt; #{shNum}
-      AND startTime &lt;= #{endTime}
-      AND endTime   &gt;= #{startTime}
+    select count(*)
+    from schedule
+    where empnum = #{empNum}
+      and codebid = 'VACATION'
+      and shnum  &lt;&gt; #{shNum}
+      and starttime &lt;= #{endTime}
+      and endtime   &gt;= #{startTime}
   </select>
 
   <!-- ===================== ⬇ 관리자 전용 검색(11g 페이징) ⬇ ===================== -->
   <select id="selectByFiltersForAdmin" parameterType="map" resultMap="ScheduleMap">
-      SELECT
-        s.shNum, s.empNum, s.codeBid, s.startTime, s.endTime, s.memo, s.memNum,
-        e.empName,
-        cb.name AS codeBName,
-        m.memName
-      FROM SCHEDULE s
-		  JOIN Employee e ON s.empNum = e.empNum
-		  LEFT JOIN CodeB cb ON s.codeBid = cb.codeBid
-		  LEFT JOIN Member m ON s.memNum = m.memNum
+      select
+        s.shnum, s.empnum, s.codebid, s.starttime, s.endtime, s.memo, s.memnum,
+        e.empname,
+        cb.name as codebname,
+        m.memname
+      from schedule s
+		  join employee e on s.empnum = e.empnum
+		  left join codeb cb on s.codebid = cb.codebid
+		  left join member m on s.memnum = m.memnum
       <where>	
         <if test="codeBid != null and codeBid != ''">
-          s.codeBid = #{codeBid}
+          s.codebid = #{codeBid}
         </if>
         <if test="keyword != null and keyword != ''">
-          <if test="codeBid != null and codeBid != ''">AND</if>
+          <if test="codeBid != null and codeBid != ''">and</if>
           (
-            LOWER(e.empName)           LIKE CONCAT('%', LOWER(#{keyword}), '%')
-            OR LOWER(IFNULL(m.memName,''))LIKE CONCAT('%', LOWER(#{keyword}), '%')
-            OR LOWER(IFNULL(s.memo,''))   LIKE CONCAT('%', LOWER(#{keyword}), '%')
+            lower(e.empname)           like concat('%', lower(#{keyword}), '%')
+            or lower(ifnull(m.memname,''))like concat('%', lower(#{keyword}), '%')
+            or lower(ifnull(s.memo,''))   like concat('%', lower(#{keyword}), '%')
           )
         </if>
       </where>
-    ORDER BY s.startTime DESC
-    LIMIT #{limit} OFFSET #{offset}
+    order by s.starttime desc
+    limit #{limit} offset #{offset}
   </select>
 
 
 
   <select id="countByFiltersForAdmin" parameterType="map" resultType="int">
-    SELECT COUNT(*)
-    FROM SCHEDULE s
-      JOIN Employee e ON s.empNum = e.empNum
-      LEFT JOIN CodeB cb ON s.codeBid = cb.codeBid
-      LEFT JOIN Member m ON s.memNum = m.memNum
+    select count(*)
+    from schedule s
+      join employee e on s.empnum = e.empnum
+      left join codeb cb on s.codebid = cb.codebid
+      left join member m on s.memnum = m.memnum
     <where>
       <if test="codeBid != null and codeBid != ''">
-        s.codeBid = #{codeBid}
+        s.codebid = #{codeBid}
       </if>
       <if test="keyword != null and keyword != ''">
-        <if test="codeBid != null and codeBid != ''">AND</if>
+        <if test="codeBid != null and codeBid != ''">and</if>
         (
-          LOWER(e.empName)           LIKE CONCAT('%', LOWER(#{keyword}), '%')
-          OR LOWER(IFNULL(m.memName,''))LIKE CONCAT('%', LOWER(#{keyword}), '%')
-          OR LOWER(IFNULL(s.memo,''))   LIKE CONCAT('%', LOWER(#{keyword}), '%')
+          lower(e.empname)           like concat('%', lower(#{keyword}), '%')
+          or lower(ifnull(m.memname,''))like concat('%', lower(#{keyword}), '%')
+          or lower(ifnull(s.memo,''))   like concat('%', lower(#{keyword}), '%')
         )
       </if>
     </where>
@@ -186,30 +186,30 @@
 	<!-- 일정 시간이 정책에 따라 겹치지 않을 때만 INSERT -->
 	<insert id="insertIfNoOverlap" parameterType="com.example.gymerp.dto.ScheduleDto" useGeneratedKeys="true" keyProperty="shNum">
 	  <![CDATA[
-	  INSERT INTO SCHEDULE (
-	    EMPNUM, CODEBID, STARTTIME, ENDTIME, MEMNUM, MEMO
+	  insert into schedule (
+	    empnum, codebid, starttime, endtime, memnum, memo
 	  )
-	  SELECT * FROM (
-	    SELECT
-	      #{empNum,     jdbcType=NUMERIC} AS empNum,
-	      #{codeBid,    jdbcType=VARCHAR} AS codeBid,
-	      #{startTime,  jdbcType=TIMESTAMP} AS startTime,
-	      #{endTime,    jdbcType=TIMESTAMP} AS endTime,
-	      #{memNum,     jdbcType=NUMERIC} AS memNum,
-	      #{memo,       jdbcType=VARCHAR} AS memo
-	  ) AS tmp
-	  WHERE NOT EXISTS (
-	    SELECT 1
-	    FROM SCHEDULE s
-	    WHERE s.EMPNUM = #{empNum, jdbcType=NUMERIC}
-	      AND #{startTime, jdbcType=TIMESTAMP} < s.ENDTIME
-	      AND s.STARTTIME < #{endTime, jdbcType=TIMESTAMP}
-	      AND (
+	  select * from (
+	    select
+	      #{empNum,     jdbcType=NUMERIC} as empnum,
+	      #{codeBid,    jdbcType=VARCHAR} as codebid,
+	      #{startTime,  jdbcType=TIMESTAMP} as starttime,
+	      #{endTime,    jdbcType=TIMESTAMP} as endtime,
+	      #{memNum,     jdbcType=NUMERIC} as memnum,
+	      #{memo,       jdbcType=VARCHAR} as memo
+	  ) as tmp
+	  where not exists (
+	    select 1
+	    from schedule s
+	    where s.empnum = #{empNum, jdbcType=NUMERIC}
+	      and #{startTime, jdbcType=TIMESTAMP} < s.endtime
+	      and s.starttime < #{endTime, jdbcType=TIMESTAMP}
+	      and (
 	            /* PT는 PT/VACATION과만 충돌 */
-	            (#{codeBid, jdbcType=VARCHAR} = 'SCHEDULE-PT' AND s.CODEBID IN ('SCHEDULE-PT','VACATION'))
-	         OR /* ETC는 VACATION과만 충돌 */
-	            (#{codeBid, jdbcType=VARCHAR} LIKE 'ETC-%'       AND s.CODEBID = 'VACATION')
-	         OR /* VACATION은 모든 코드와 충돌 */
+	            (#{codeBid, jdbcType=VARCHAR} = 'SCHEDULE-PT' and s.codebid in ('SCHEDULE-PT','VACATION'))
+	         or /* ETC는 VACATION과만 충돌 */
+	            (#{codeBid, jdbcType=VARCHAR} like 'ETC-%'       and s.codebid = 'VACATION')
+	         or /* VACATION은 모든 코드와 충돌 */
 	            (#{codeBid, jdbcType=VARCHAR} = 'VACATION')
 	          )
 	  )
@@ -221,27 +221,27 @@
 	<!-- 일정 시간이 정책에 따라 겹치지 않을 때만 UPDATE -->
 	<update id="updateIfNoOverlap" parameterType="com.example.gymerp.dto.ScheduleDto">
 	  <![CDATA[
-	  UPDATE SCHEDULE s
-	     SET s.EMPNUM    = #{empNum,    jdbcType=NUMERIC}
-	       , s.CODEBID   = #{codeBid,   jdbcType=VARCHAR}
-	       , s.STARTTIME = #{startTime, jdbcType=TIMESTAMP}
-	       , s.ENDTIME   = #{endTime,   jdbcType=TIMESTAMP}
-	       , s.MEMNUM    = #{memNum,    jdbcType=NUMERIC}
-	       , s.MEMO      = #{memo,      jdbcType=VARCHAR}
-	   WHERE s.SHNUM = #{shNum, jdbcType=NUMERIC}
-	     AND NOT EXISTS (
-	           SELECT 1
-	             FROM SCHEDULE x
-	            WHERE x.EMPNUM = #{empNum, jdbcType=NUMERIC}
-	              AND x.SHNUM <> #{shNum, jdbcType=NUMERIC}  -- 자기 자신 제외
-	              AND #{startTime, jdbcType=TIMESTAMP} < x.ENDTIME
-	              AND x.STARTTIME < #{endTime, jdbcType=TIMESTAMP}
-	              AND (
+	  update schedule s
+	     set s.empnum    = #{empNum,    jdbcType=NUMERIC}
+	       , s.codebid   = #{codeBid,   jdbcType=VARCHAR}
+	       , s.starttime = #{startTime, jdbcType=TIMESTAMP}
+	       , s.endtime   = #{endTime,   jdbcType=TIMESTAMP}
+	       , s.memnum    = #{memNum,    jdbcType=NUMERIC}
+	       , s.memo      = #{memo,      jdbcType=VARCHAR}
+	   where s.shnum = #{shNum, jdbcType=NUMERIC}
+	     and not exists (
+	           select 1
+	             from schedule x
+	            where x.empnum = #{empNum, jdbcType=NUMERIC}
+	              and x.shnum <> #{shNum, jdbcType=NUMERIC}  -- 자기 자신 제외
+	              and #{startTime, jdbcType=TIMESTAMP} < x.endtime
+	              and x.starttime < #{endTime, jdbcType=TIMESTAMP}
+	              and (
 	                    /* PT는 PT/VACATION과만 충돌 */
-	                    (#{codeBid, jdbcType=VARCHAR} = 'SCHEDULE-PT' AND x.CODEBID IN ('SCHEDULE-PT','VACATION'))
-	                 OR /* ETC는 VACATION과만 충돌 */
-	                    (#{codeBid, jdbcType=VARCHAR} LIKE 'ETC-%'       AND x.CODEBID = 'VACATION')
-	                 OR /* VACATION은 모든 코드와 충돌 */
+	                    (#{codeBid, jdbcType=VARCHAR} = 'SCHEDULE-PT' and x.codebid in ('SCHEDULE-PT','VACATION'))
+	                 or /* ETC는 VACATION과만 충돌 */
+	                    (#{codeBid, jdbcType=VARCHAR} like 'ETC-%'       and x.codebid = 'VACATION')
+	                 or /* VACATION은 모든 코드와 충돌 */
 	                    (#{codeBid, jdbcType=VARCHAR} = 'VACATION')
 	                  )
 	         )

@@ -10,66 +10,66 @@
 
     <!-- 회원권 단건 조회 -->
     <select id="selectVoucherByMember" parameterType="long" resultType="VoucherLogDto">
-        SELECT voucherId, memNum, memberName, startDate, endDate
-        FROM voucher_log
-        WHERE memNum = #{memNum}
+        select voucherid, memnum, membername, startdate, enddate
+        from voucher_log
+        where memnum = #{memNum}
     </select>
 
     <!-- 회원권 유효 여부 확인 -->
     <select id="checkVoucherValid" parameterType="long" resultType="int">
-        SELECT COUNT(*)
-        FROM voucher_log
-        WHERE memNum = #{memNum}
-          AND endDate >= NOW()
+        select count(*)
+        from voucher_log
+        where memnum = #{memNum}
+          and enddate >= now()
     </select>
 
     <!-- 회원권 신규 등록 -->
     <insert id="insertVoucherLog" parameterType="VoucherLogDto" useGeneratedKeys="true" keyProperty="voucherId">
-	    INSERT INTO voucher_log (
-	        memNum, memberName, startDate, endDate
+	    insert into voucher_log (
+	        memnum, membername, startdate, enddate
 	    )
-	    VALUES (
+	    values (
 	        #{memNum},
 	        #{memberName},
-	        TO_DATE(#{startDate}, 'YYYY-MM-DD HH24:MI:SS'),
-	        TO_DATE(#{endDate}, 'YYYY-MM-DD HH24:MI:SS')
+	        str_to_date(#{startDate}, '%Y-%m-%d %H:%i:%s'),
+	        str_to_date(#{endDate}, '%Y-%m-%d %H:%i:%s')
 	    )
 	</insert>
 
     <!-- 회원권 기간 연장 -->
     <update id="extendVoucherLog" parameterType="VoucherLogDto">
-        UPDATE voucher_log
-        SET endDate = TO_DATE(#{endDate}, 'YYYY-MM-DD HH24:MI:SS')
-        WHERE memNum = #{memNum}
+        update voucher_log
+        set enddate = str_to_date(#{endDate}, '%Y-%m-%d %H:%i:%s')
+        where memnum = #{memNum}
     </update>
 
-    <!-- 회원권 만료 후 재시작 -->
+    <!-- 회원권 기간 연장 -->
     <update id="renewVoucherLog" parameterType="VoucherLogDto">
-        UPDATE voucher_log
-        SET startDate = NOW(),
-            endDate = #{endDate}
-        WHERE memNum = #{memNum}
+        update voucher_log
+        set startdate = now(),
+            enddate = #{endDate}
+        where memnum = #{memNum}
     </update>
 
     <!-- 회원권 부분환불 (endDate 단축) -->
     <update id="partialRefundVoucherLog" parameterType="VoucherLogDto">
-	    UPDATE voucher_log
-	    SET endDate = TO_DATE(#{endDate}, 'YYYY-MM-DD HH24:MI:SS')
-	    WHERE memNum = #{memNum}
+	    update voucher_log
+	    set enddate = str_to_date(#{endDate}, '%Y-%m-%d %H:%i:%s')
+	    where memnum = #{memNum}
 	</update>
 
     <!-- 회원권 전체환불 (미사용 상태에서 endDate 단축) -->
     <update id="fullRefundVoucherLog" parameterType="VoucherLogDto">
-        UPDATE voucher_log
-        SET endDate = TO_DATE(#{endDate}, 'YYYY-MM-DD HH24:MI:SS')
-        WHERE memNum = #{memNum}
+        update voucher_log
+        set enddate = str_to_date(#{endDate}, '%Y-%m-%d %H:%i:%s')
+        where memnum = #{memNum}
     </update>
 
     <!-- 회원권 연장 일수 추가 -->
     <update id="extendVoucherPeriod" parameterType="map">
-        UPDATE voucher_log
-           SET endDate = endDate + #{extendDays}
-         WHERE memNum = #{memNum}
+        update voucher_log
+           set enddate = date_add(enddate, interval #{extendDays} day)
+         where memnum = #{memNum}
     </update>
 
 
@@ -80,83 +80,83 @@
 
     <!-- PT 신규 충전 로그 등록 -->
     <insert id="insertPtChargeLog" parameterType="PtLogDto" useGeneratedKeys="true" keyProperty="usageId">
-        INSERT INTO pt_log (
-            memNum, empNum, status, countChange, createdAt, salesId, regId
-        ) VALUES (
-            #{memNum}, #{empNum}, '충전',  #{countChange, jdbcType=NUMERIC}, NOW(), #{salesId, jdbcType=NUMERIC}, #{regId, jdbcType=NUMERIC}
+        insert into pt_log (
+            memnum, empnum, status, countchange, createdat, salesid, regid
+        ) values (
+            #{memNum}, #{empNum}, '충전',  #{countChange, jdbcType=NUMERIC}, now(), #{salesId, jdbcType=NUMERIC}, #{regId, jdbcType=NUMERIC}
         )
     </insert>
 
     <!-- PT 부분환불 로그 등록 -->
     <insert id="insertPtPartialRefundLog" parameterType="PtLogDto" useGeneratedKeys="true" keyProperty="usageId">
-        INSERT INTO pt_log (
-            memNum, empNum, status, countChange, createdAt, salesId, regId
-        ) VALUES (
-            #{memNum}, #{empNum}, '부분환불', #{countChange}, NOW(), #{salesId}, #{regId, jdbcType=NUMERIC}
+        insert into pt_log (
+            memnum, empnum, status, countchange, createdat, salesid, regid
+        ) values (
+            #{memNum}, #{empNum}, '부분환불', #{countChange}, now(), #{salesId}, #{regId, jdbcType=NUMERIC}
         )
     </insert>
 
     <!-- PT 전체환불 로그 등록 -->
     <insert id="insertPtFullRefundLog" parameterType="PtLogDto" useGeneratedKeys="true" keyProperty="usageId">
-        INSERT INTO pt_log (
-            memNum, empNum, status, countChange, createdAt, salesId, regId
-        ) VALUES (
-            #{memNum}, #{empNum}, '전체환불', #{countChange}, NOW(), #{salesId}, #{regId, jdbcType=NUMERIC}
+        insert into pt_log (
+            memnum, empnum, status, countchange, createdat, salesid, regid
+        ) values (
+            #{memNum}, #{empNum}, '전체환불', #{countChange}, now(), #{salesId}, #{regId, jdbcType=NUMERIC}
         )
     </insert>
 
     <!-- 기존 충전 로그 조회 -->
     <select id="getPtLogBySalesId" parameterType="long" resultType="PtLogDto">
-        SELECT usageId, memNum, empNum, status, countChange, salesId, createdAt
-        FROM pt_log
-        WHERE salesId = #{salesId}
-          AND status = '충전'
+        select usageid, memnum, empnum, status, countchange, salesid, createdat
+        from pt_log
+        where salesid = #{salesId}
+          and status = '충전'
     </select>
 
     <!-- PT 연장 시 기존 충전 로그 수정 -->
     <update id="updatePtChargeCount" parameterType="PtLogDto">
-        UPDATE pt_log
-           SET countChange = #{countChange}
-         WHERE salesId = #{salesId}
-           AND status = '충전'
+        update pt_log
+           set countchange = #{countChange}
+         where salesid = #{salesId}
+           and status = '충전'
     </update>
 
     <!-- 남은 PT 횟수 계산 -->
     <select id="selectRemainingPtCount" parameterType="long" resultType="int">
-        SELECT IFNULL(SUM(countChange), 0)
-        FROM pt_log
-        WHERE memNum = #{memNum}
+        select ifnull(sum(countchange), 0)
+        from pt_log
+        where memnum = #{memNum}
     </select>
 
     <!-- 환불ID 기준 PT 로그 조회 -->
     <select id="selectPtLogByUsageId" parameterType="long" resultType="PtLogDto">
-        SELECT usageId, memNum, empNum, status, countChange, createdAt, salesId, regId
-        FROM pt_log
-        WHERE usageId = #{refundId}
+        select usageid, memnum, empnum, status, countchange, createdat, salesid, regid
+        from pt_log
+        where usageid = #{refundId}
     </select>
 
     <!-- 내 차례 도달 여부 판별 -->
     <select id="checkPtTurnReached" parameterType="map" resultType="int">
-	    SELECT CASE
-	             WHEN IFNULL(SUM(
-	                 CASE 
-	                     WHEN status = '소비' THEN -countChange
-	                     WHEN status = '예약취소' THEN countChange
-	                     ELSE 0
-	                 END
+	    select case
+	             when ifnull(sum(
+	                 case 
+	                     when status = '소비' then -countchange
+	                     when status = '예약취소' then countchange
+	                     else 0
+	                 end
 	             ), 0)
-	             >= IFNULL(SUM(
-	                 CASE 
-	                     WHEN status = '충전' AND salesId &lt; #{salesId} THEN countChange
-	                     WHEN status IN ('부분환불','전체환불') AND salesId &lt;= #{salesId} THEN countChange
-	                     ELSE 0
-	                 END
+	             >= ifnull(sum(
+	                 case 
+	                     when status = '충전' and salesid &lt; #{salesId} then countchange
+	                     when status in ('부분환불','전체환불') and salesid &lt;= #{salesId} then countchange
+	                     else 0
+	                 end
 	             ), 0)
-	             THEN 1
-	             ELSE 0
-	           END AS turnReached
-	    FROM pt_log
-	    WHERE memNum = #{memNum}
+	             then 1
+	             else 0
+	           end as turnreached
+	    from pt_log
+	    where memnum = #{memNum}
 	</select>
     
 
@@ -168,65 +168,64 @@
 
     <!-- PT 예약 로그 등록 (소비) -->
     <insert id="insertPtConsumeLog" parameterType="PtLogDto" useGeneratedKeys="true" keyProperty="usageId">
-        INSERT INTO pt_log (
-            memNum, empNum, status, countChange, createdAt, salesId, regId
+        insert into pt_log (
+            memnum, empnum, status, countchange, createdat, salesid, regid
         )
-        SELECT
-            #{memNum}, #{empNum}, '소비', -1, NOW(), NULL, #{regId, jdbcType=NULL}
-        FROM dual
-        WHERE (
-            SELECT IFNULL(SUM(countChange), 0)
-            FROM pt_log
-            WHERE memNum = #{memNum}
+        select
+            #{memNum}, #{empNum}, '소비', -1, now(), null, #{regId, jdbcType=NULL}
+        where (
+            select ifnull(sum(countchange), 0)
+            from pt_log
+            where memnum = #{memNum}
         ) > 0
     </insert>
 
     <!-- PT 예약 취소 로그 등록 (복구) -->
     <insert id="insertPtCancelLog" parameterType="PtLogDto" useGeneratedKeys="true" keyProperty="usageId">
-        INSERT INTO pt_log (
-            memNum, empNum, status, countChange, createdAt, salesId, regId
-        ) VALUES (
+        insert into pt_log (
+            memnum, empnum, status, countchange, createdat, salesid, regid
+        ) values (
             #{memNum, jdbcType=NUMERIC},
             #{empNum, jdbcType=NUMERIC},
             '예약취소',
             1,
-            NOW(),
-            NULL,
+            now(),
+            null,
             #{regId, jdbcType=NULL}
         )
     </insert>
 
     <!-- 등록번호 기준 소비 로그 조회 -->
     <select id="selectPtLogByRegId" parameterType="long" resultType="PtLogDto">
-        SELECT usageId, memNum, empNum, status, countChange, createdAt, salesId, regId
-        FROM pt_log
-        WHERE regId = #{regId}
-          AND status = '소비'
+        select usageid, memnum, empnum, status, countchange, createdat, salesid, regid
+        from pt_log
+        where regid = #{regId}
+          and status = '소비'
     </select>
 
     
 	<!-- 차례 이후 실제 사용 여부 확인 -->
 	<select id="getUsedCountBySalesId" parameterType="map" resultType="int">
-	    SELECT IFNULL(SUM(
-	        CASE
-	            WHEN status = '소비' THEN 1                 
-	            WHEN status = '예약취소' THEN -1           
-	            WHEN status = '부분환불' THEN ABS(countChange)   
-	            WHEN status = '전체환불' THEN ABS(countChange) 
-	            ELSE 0
-	        END
-	    ), 0) AS usedCount
-	    FROM pt_log
-	    WHERE memNum = #{memNum}
-	      AND (
-	           salesId = #{salesId}                
-	        OR (
-	              usageId > (
-	                  SELECT MIN(usageId)
-	                  FROM pt_log
-	                  WHERE memNum = #{memNum}
-	                    AND salesId = #{salesId}
-	                    AND status = '충전'
+	    select ifnull(sum(
+	        case
+	            when status = '소비' then 1                 
+	            when status = '예약취소' then -1           
+	            when status = '부분환불' then abs(countchange)   
+	            when status = '전체환불' then abs(countchange) 
+	            else 0
+	        end
+	    ), 0) as usedcount
+	    from pt_log
+	    where memnum = #{memNum}
+	      and (
+	           salesid = #{salesId}                
+	        or (
+	              usageid > (
+	                  select min(usageid)
+	                  from pt_log
+	                  where memnum = #{memNum}
+	                    and salesid = #{salesId}
+	                    and status = '충전'
 	              )
 	           )
 	      )
@@ -239,67 +238,67 @@
 	     [회원권 로그 리스트 조회 - 필터 + 페이징]
 	=========================================================== -->
 	<select id="selectPagedVoucherLogs" parameterType="map" resultType="map">
-	    SELECT 
-	        V.voucherId           AS voucherId,
-	        V.memNum              AS memNum,
-	        V.memberName          AS memberName,
-	        TO_CHAR(V.startDate, 'YYYY-MM-DD') AS startDate,
-	        TO_CHAR(V.endDate, 'YYYY-MM-DD')   AS endDate,
-	        CASE 
-	            WHEN V.endDate >= TRUNC(NOW()) THEN '유효'
-	            ELSE '만료'
-	        END AS validity
-	    FROM voucher_log V
-	    WHERE 1=1
+	    select 
+	        v.voucherid           as voucherid,
+	        v.memnum              as memnum,
+	        v.membername          as membername,
+	        date_format(v.startdate, '%Y-%m-%d') as startdate,
+	        date_format(v.enddate, '%Y-%m-%d')   as enddate,
+	        case 
+	            when v.enddate >= curdate() then '유효'
+	            else '만료'
+	        end as validity
+	    from voucher_log v
+	    where 1=1
 	    <if test="memNum != null">
-	        AND V.memNum = #{memNum}
+	        and v.memnum = #{memNum}
 	    </if>
 	    <if test="startDate != null and startDate.trim() != ''">
-	        AND V.startDate &gt;= TO_DATE(#{startDate}, 'YYYY-MM-DD')
+	        and v.startdate &gt;= str_to_date(#{startDate}, '%Y-%m-%d')
 	    </if>
 	    <if test="endDate != null and endDate.trim() != ''">
-	        AND V.endDate &lt; TO_DATE(#{endDate}, 'YYYY-MM-DD') + 1
+	        and v.enddate &lt; date_add(str_to_date(#{endDate}, '%Y-%m-%d'), interval 1 day)
 	    </if>
 	
 	    <!-- ✅ 만료 여부 필터 추가 -->
 	    <if test="validityFilter != null and validityFilter != '' and validityFilter != '전체'">
 	        <choose>
 	            <when test="validityFilter == '유효'">
-	                AND V.endDate &gt;= TRUNC(NOW())
+	                and v.enddate &gt;= curdate()
 	            </when>
 	            <when test="validityFilter == '만료'">
-	                AND V.endDate &lt; TRUNC(NOW())
+	                and v.enddate &lt; curdate()
 	            </when>
 	        </choose>
 	    </if>
 	
-	    ORDER BY V.memberName ASC
-	    LIMIT #{limit} OFFSET #{offset}
+	    order by v.membername asc
+	    limit #{limit} offset #{offset}
 	</select>
 	
 	<!-- 회원권 전체 카운트 -->
 	<select id="selectVoucherTotalCount" resultType="int">
-	    SELECT COUNT(*)
-	    FROM voucher_log V
-	    WHERE 1=1
+	    select count(*)
+	    from voucher_log v
+	    where 1=1
 	    <if test="startDate != null and startDate != ''">
-	        AND V.startDate &gt;= TO_DATE(#{startDate}, 'YYYY-MM-DD')
+	        and v.startdate &gt;= str_to_date(#{startDate}, '%Y-%m-%d')
 	    </if>
 	    <if test="endDate != null and endDate != ''">
-	        AND V.endDate &lt; TO_DATE(#{endDate}, 'YYYY-MM-DD') + 1
+	        and v.enddate &lt; date_add(str_to_date(#{endDate}, '%Y-%m-%d'), interval 1 day)
 	    </if>
 	    <if test="memNum != null">
-	        AND V.memNum = #{memNum}
+	        and v.memnum = #{memNum}
 	    </if>
 	
 	    <!-- ✅ 만료 여부 필터 추가 -->
 	    <if test="validityFilter != null and validityFilter != '' and validityFilter != '전체'">
 	        <choose>
 	            <when test="validityFilter == '유효'">
-	                AND V.endDate &gt;= TRUNC(NOW())
+	                and v.enddate &gt;= curdate()
 	            </when>
 	            <when test="validityFilter == '만료'">
-	                AND V.endDate &lt; TRUNC(NOW())
+	                and v.enddate &lt; curdate()
 	            </when>
 	        </choose>
 	    </if>
@@ -310,33 +309,33 @@
 	     [PT 로그 리스트 조회 - 필터 + 페이징]
 	=========================================================== -->
 	<select id="selectPagedPtLogs" parameterType="map" resultType="map">
-	    SELECT 
-	        P.usageId,
-	        P.memNum,
-	        M.memName AS memberName,
-	        P.empNum,
-	        E.empName AS empName,
-	        P.status,
-	        P.countChange,
-	        TO_CHAR(P.createdAt, 'YYYY-MM-DD HH24:MI:SS') AS createdAt
-	    FROM pt_log P
-	    LEFT JOIN member M ON P.memNum = M.memNum
-	    LEFT JOIN employee E ON P.empNum = E.empNum
-	    WHERE 1=1
+	    select 
+	        p.usageid,
+	        p.memnum,
+	        m.memname as membername,
+	        p.empnum,
+	        e.empname as empname,
+	        p.status,
+	        p.countchange,
+	        date_format(p.createdat, '%Y-%m-%d %H:%i:%s') as createdat
+	    from pt_log p
+	    left join member m on p.memnum = m.memnum
+	    left join employee e on p.empnum = e.empnum
+	    where 1=1
 	        <if test="startDate != null and startDate != ''">
-	            AND P.createdAt &gt;= TO_DATE(#{startDate}, 'YYYY-MM-DD')
+	            and p.createdat &gt;= str_to_date(#{startDate}, '%Y-%m-%d')
 	        </if>
 	        <if test="endDate != null and endDate != ''">
-	            AND P.createdAt &lt; TO_DATE(#{endDate}, 'YYYY-MM-DD') + 1
+	            and p.createdat &lt; date_add(str_to_date(#{endDate}, '%Y-%m-%d'), interval 1 day)
 	        </if>
 	        <if test="memNum != null and memNum != ''">
-	            AND P.memNum = #{memNum}
+	            and p.memnum = #{memNum}
 	        </if>
 	        <if test="empNum != null and empNum != ''">
-	            AND P.empNum = #{empNum}
+	            and p.empnum = #{empNum}
 	        </if>
-	    ORDER BY P.usageId DESC  <!-- ✅ PK 기준 최신순 정렬 -->
-	    LIMIT #{limit} OFFSET #{offset}
+	    order by p.usageid desc  <!-- ✅ PK 기준 최신순 정렬 -->
+	    limit #{limit} offset #{offset}
 	</select>
 	
 	
@@ -344,20 +343,20 @@
 		
 	<!-- PT 전체 카운트 -->
 	<select id="selectPtTotalCount" resultType="int">
-	    SELECT COUNT(*)
-	    FROM pt_log P
-	    WHERE 1=1
+	    select count(*)
+	    from pt_log p
+	    where 1=1
 	    <if test="startDate != null and startDate != ''">
-	        AND P.createdAt &gt;= TO_DATE(#{startDate}, 'YYYY-MM-DD')
+	        and p.createdat &gt;= str_to_date(#{startDate}, '%Y-%m-%d')
 	    </if>
 	    <if test="endDate != null and endDate != ''">
-	        AND P.createdAt &lt; TO_DATE(#{endDate}, 'YYYY-MM-DD') + 1
+	        and p.createdat &lt; date_add(str_to_date(#{endDate}, '%Y-%m-%d'), interval 1 day)
 	    </if>
 	    <if test="memNum != null">
-	        AND P.memNum = #{memNum}
+	        and p.memnum = #{memNum}
 	    </if>
 	    <if test="empNum != null">
-	        AND P.empNum = #{empNum}
+	        and p.empnum = #{empNum}
 	    </if>
 	</select>
 	

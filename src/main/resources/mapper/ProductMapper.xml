@@ -5,124 +5,124 @@
 	<sql id="search">
 		<where>
 	        <if test="categoryCodes != null and !categoryCodes.isEmpty()">
-	            AND pr.codeBId IN 
+	            and pr.codebid in 
 	            <foreach collection="categoryCodes" item="categoryCode" open="(" separator="," close=")">
 					#{categoryCode} 
 	            </foreach>
 			</if>
 	        
 	        <if test="keyword != null and keyword != ''">
-				AND pr.name LIKE CONCAT('%', #{keyword}, '%')
+				and pr.name like concat('%', #{keyword}, '%')
 	        </if>
 		</where>
 	</sql>
 
 	<select id="selectPage" parameterType="productDto" resultType="productDto">
-		SELECT
-		    pr.productId,
+		select
+		    pr.productid,
 		    pr.name,
 		    pr.price,
-		    pr.isActive,
-		    pr.codeBId,
-		    cb.name AS codeBName,
-		    (IFNULL(pi.total_in, 0) - IFNULL(sa.total_out, 0) - IFNULL(si.total_sales, 0)) AS quantity
-		FROM product pr
-		LEFT JOIN codeB cb ON pr.codeBId = cb.codeBId
-		LEFT JOIN (
-		    SELECT productId, SUM(quantity) AS total_in
-		    FROM PURCHASE
-		    GROUP BY productId
-		) pi ON pr.productId = pi.productId
-		LEFT JOIN (
-		    SELECT productId, SUM(quantity) AS total_out
-		    FROM STOCKADJUSTMENT
-		    GROUP BY productId
-		) sa ON pr.productId = sa.productId
-		LEFT JOIN (
-		    SELECT productId, SUM(quantity) AS total_sales
-		    FROM SALES_ITEM
-		    WHERE status='ACTIVE'
-		    GROUP BY productId
-		) si ON pr.productId = si.productId
+		    pr.isactive,
+		    pr.codebid,
+		    cb.name as codebname,
+		    (ifnull(pi.total_in, 0) - ifnull(sa.total_out, 0) - ifnull(si.total_sales, 0)) as quantity
+		from product pr
+		left join codeb cb on pr.codebid = cb.codebid
+		left join (
+		    select productid, sum(quantity) as total_in
+		    from purchase
+		    group by productid
+		) pi on pr.productid = pi.productid
+		left join (
+		    select productid, sum(quantity) as total_out
+		    from stockadjustment
+		    group by productid
+		) sa on pr.productid = sa.productid
+		left join (
+		    select productid, sum(quantity) as total_sales
+		    from sales_item
+		    where status='ACTIVE'
+		    group by productid
+		) si on pr.productid = si.productid
 		<include refid="search"/>
 		<if test="sortBy != null and sortBy != ''">
-		    ORDER BY
+		    order by
 		    <choose>
 		        <when test="sortBy == 'codeBName'"> cb.name </when>
 		        <when test="sortBy == 'name'"> pr.name </when>
 		        <when test="sortBy == 'price'"> pr.price </when>
 		        <when test="sortBy == 'quantity'"> quantity </when> <!-- Sort by calculated quantity -->
-		        <otherwise> pr.productId </otherwise>
+		        <otherwise> pr.productid </otherwise>
 		    </choose>
 		    <choose>
-		        <when test="direction == 'DESC'"> DESC </when>
-		        <otherwise> ASC </otherwise>
+		        <when test="direction == 'DESC'"> desc </when>
+		        <otherwise> asc </otherwise>
 		    </choose>
 		</if>
-		OFFSET #{startRowNum} LIMIT (#{endRowNum} - #{startRowNum} + 1)
+		limit (#{endRowNum} - #{startRowNum} + 1) offset #{startRowNum}
 	</select>
 	
 	<select id="selectPageWithoutQuantity" parameterType="productDto" resultType="productDto">
-		SELECT
-		    pr.productId,
+		select
+		    pr.productid,
 		    pr.name,
 		    pr.price,
-		    pr.isActive,
-		    pr.codeBId,
-		    cb.name AS codeBName
-		FROM product pr
-		LEFT JOIN codeB cb ON pr.codeBId = cb.codeBId
+		    pr.isactive,
+		    pr.codebid,
+		    cb.name as codebname
+		from product pr
+		left join codeb cb on pr.codebid = cb.codebid
 		<include refid="search"/>
 		<if test="sortBy != null and sortBy != ''">
-		    ORDER BY
+		    order by
 		    <choose>
 		        <when test="sortBy == 'codeBName'"> cb.name </when>
 		        <when test="sortBy == 'name'"> pr.name </when>
 		        <when test="sortBy == 'price'"> pr.price </when>
-		        <otherwise> pr.productId </otherwise>
+		        <otherwise> pr.productid </otherwise>
 		    </choose>
 		    <choose>
-		        <when test="direction == 'DESC'"> DESC </when>
-		        <otherwise> ASC </otherwise>
+		        <when test="direction == 'DESC'"> desc </when>
+		        <otherwise> asc </otherwise>
 		    </choose>
 		</if>
-		OFFSET #{startRowNum} LIMIT (#{endRowNum} - #{startRowNum} + 1)
+		limit (#{endRowNum} - #{startRowNum} + 1) offset #{startRowNum}
 	</select>
 	
 	<select id="getCount" parameterType="productDto" resultType="int">
-		SELECT COUNT(*)
-		FROM product pr
+		select count(*)
+		from product pr
 		<include refid="search"/>
 	</select>
 		
 	<insert id="insert" parameterType="productDto" useGeneratedKeys="true" keyProperty="productId">
-		INSERT INTO product
-		(codeBId, name, price, isActive, createdAt, profileImage, note)
-		VALUES(#{codeBId}, #{name}, #{price}, #{isActive}, #{createdAt}, #{profileImage, jdbcType=VARCHAR}, #{note, jdbcType=VARCHAR})
+		insert into product
+		(codebid, name, price, isactive, createdat, profileimage, note)
+		values(#{codeBId}, #{name}, #{price}, #{isActive}, #{createdAt}, #{profileImage, jdbcType=VARCHAR}, #{note, jdbcType=VARCHAR})
 	</insert>
 	
 	<update id="update" parameterType="productDto">
-		UPDATE product
-		SET codeBId=#{codeBId}, name=#{name}, price=#{price}, isActive=#{isActive},
-			updatedAt=#{updatedAt}, note=#{note}
+		update product
+		set codebid=#{codeBId}, name=#{name}, price=#{price}, isactive=#{isActive},
+			updatedat=#{updatedAt}, note=#{note}
 			
-			<if test="profileImage != null">, profileImage=#{profileImage}</if>
+			<if test="profileImage != null">, profileimage=#{profileImage}</if>
 			
-		WHERE productId=#{productId}
+		where productid=#{productId}
 	</update>
 	
 	<select id="getByNum" parameterType="int" resultType="productDto">
-		SELECT pr.codeBId, cb.name AS codeBName, pr.createdAt, pr.isActive, pr.name, pr.updatedAt, pr.profileImage, pr.note, pr.price
-		FROM product pr
-		LEFT JOIN codeB cb ON pr.codeBId = cb.codeBId 
-		WHERE productId=#{productId}
+		select pr.codebid, cb.name as codebname, pr.createdat, pr.isactive, pr.name, pr.updatedat, pr.profileimage, pr.note, pr.price
+		from product pr
+		left join codeb cb on pr.codebid = cb.codebid 
+		where productid=#{productId}
 	</select>
 	
 	<update id="updateStatus" parameterType="productDto">
-		UPDATE product
-		SET 
-        isActive = #{isActive}  
-        WHERE productId = #{productId}
+		update product
+		set 
+        isactive = #{isActive}  
+        where productid = #{productId}
 	</update>
 	
 </mapper>

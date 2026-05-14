@@ -5,79 +5,79 @@
 	<sql id="search">
 		<where>
 	        <if test="categoryCodes != null and !categoryCodes.isEmpty()">
-	            AND sv.codeBId IN 
+	            and sv.codebid in 
 	            <foreach collection="categoryCodes" item="categoryCode" open="(" separator="," close=")">
 					#{categoryCode} 
 	            </foreach>
 			</if>
 	        
 	        <if test="keyword != null and keyword != ''">
-				AND sv.name LIKE CONCAT('%', #{keyword}, '%')
+				and sv.name like concat('%', #{keyword}, '%')
 	        </if>
 		</where>
 	</sql>
 
 	<select id="selectPage" parameterType="serviceDto" resultType="serviceDto">
-		SELECT 
-			sv.serviceId, 
+		select 
+			sv.serviceid, 
 			sv.name, 
 			sv.price, 
-			sv.isActive, 
-			sv.codeBId, 
-			sv.serviceValue, 
-			cb.name AS codeBName
-		FROM service sv
-		LEFT JOIN codeB cb ON sv.codeBId = cb.codeBId
+			sv.isactive, 
+			sv.codebid, 
+			sv.servicevalue, 
+			cb.name as codebname
+		from service sv
+		left join codeb cb on sv.codebid = cb.codebid
 		<include refid="search"/>
 		<if test="sortBy != null and sortBy != ''">
-            ORDER BY
+            order by
             <choose>
                 <when test="sortBy == 'codeBName'"> cb.name </when>
                 <when test="sortBy == 'name'"> sv.name </when>
                 <when test="sortBy == 'price'"> sv.price </when>
-                <otherwise> sv.serviceId </otherwise>
+                <otherwise> sv.serviceid </otherwise>
             </choose>
             <choose>
-                <when test="direction == 'DESC'"> DESC </when>
-                <otherwise> ASC </otherwise>
+                <when test="direction == 'DESC'"> desc </when>
+                <otherwise> asc </otherwise>
             </choose>
         </if>
-		OFFSET #{startRowNum} LIMIT (#{endRowNum} - #{startRowNum} + 1)
+		limit (#{endRowNum} - #{startRowNum} + 1) offset #{startRowNum}
 	</select>
 	
 	<select id="getCount" parameterType="serviceDto" resultType="int">
-		SELECT COUNT(*) AS count
-		FROM service sv
+		select count(*) as count
+		from service sv
 		<include refid="search"/>
 	</select>
 	
 	<insert id="insert" parameterType="serviceDto" useGeneratedKeys="true" keyProperty="serviceId">
-		INSERT INTO service
-		(codeBId, name, price, isActive, createdAt, serviceValue)
-		VALUES(#{codeBId}, #{name}, #{price}, #{isActive}, #{createdAt}, #{serviceValue})
+		insert into service
+		(codebid, name, price, isactive, createdat, servicevalue)
+		values(#{codeBId}, #{name}, #{price}, #{isActive}, #{createdAt}, #{serviceValue})
 	</insert>
 	
 	<update id="update" parameterType="serviceDto">
-		UPDATE service
-		SET codeBId=#{codeBId}, name=#{name}, price=#{price}, isActive=#{isActive},
-			updatedAt=#{updatedAt}, note=#{note}
+		update service
+		set codebid=#{codeBId}, name=#{name}, price=#{price}, isactive=#{isActive},
+			updatedat=#{updatedAt}, note=#{note}
 			
 			<!-- <if test="profileImage != null">, profileImage=#{profileImage}</if> -->
 			
-		WHERE serviceId=#{serviceId}
+		where serviceid=#{serviceId}
 	</update>
 	
 	<select id="getByNum" parameterType="int" resultType="serviceDto">
-		SELECT *
-		FROM service
-		WHERE serviceId=#{serviceId}
+		select *
+		from service
+		where serviceid=#{serviceId}
 	</select>	
 	
 	<update id="updateStatus" parameterType="serviceDto">
-		UPDATE service
-		SET 
-        isActive = #{isActive}  
-        WHERE serviceId = #{serviceId}
+		update service
+		set 
+        isactive = #{isActive}  
+        where serviceid = #{serviceId}
 	</update>
 	
 </mapper>

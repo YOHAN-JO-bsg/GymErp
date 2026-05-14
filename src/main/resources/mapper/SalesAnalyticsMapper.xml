@@ -15,43 +15,43 @@
     <select id="selectTotalSalesChart" resultType="map">
         
 
-        SELECT 'PT' AS label, IFNULL(SUM(actualamount), 0) AS total_sales
-        FROM sales_service
-        WHERE UPPER(status) = 'ACTIVE'
-          AND UPPER(servicetype) = 'PT'
-          AND createdat BETWEEN NOW() - 30 AND NOW()
+        select 'PT' as label, ifnull(sum(actualamount), 0) as total_sales
+        from sales_service
+        where upper(status) = 'ACTIVE'
+          and upper(servicetype) = 'PT'
+          and createdat between now() - 30 and now()
 
-        UNION ALL
+        union all
 
-        SELECT 'VOUCHER' AS label, IFNULL(SUM(actualamount), 0) AS total_sales
-        FROM sales_service
-        WHERE UPPER(status) = 'ACTIVE'
-          AND UPPER(servicetype) = 'VOUCHER'
-          AND createdat BETWEEN NOW() - 30 AND NOW()
+        select 'VOUCHER' as label, ifnull(sum(actualamount), 0) as total_sales
+        from sales_service
+        where upper(status) = 'ACTIVE'
+          and upper(servicetype) = 'VOUCHER'
+          and createdat between now() - 30 and now()
 
-        UNION ALL
+        union all
 
-        SELECT 'CLOTHES' AS label, IFNULL(SUM(totalamount), 0) AS total_sales
-        FROM sales_item
-        WHERE UPPER(status) = 'ACTIVE'
-          AND UPPER(producttype) = 'CLOTHES'
-          AND createdat BETWEEN NOW() - 30 AND NOW()
+        select 'CLOTHES' as label, ifnull(sum(totalamount), 0) as total_sales
+        from sales_item
+        where upper(status) = 'ACTIVE'
+          and upper(producttype) = 'CLOTHES'
+          and createdat between now() - 30 and now()
 
-        UNION ALL
+        union all
 
-        SELECT 'DRINK' AS label, IFNULL(SUM(totalamount), 0) AS total_sales
-        FROM sales_item
-        WHERE UPPER(status) = 'ACTIVE'
-          AND UPPER(producttype) = 'DRINK'
-          AND createdat BETWEEN NOW() - 30 AND NOW()
+        select 'DRINK' as label, ifnull(sum(totalamount), 0) as total_sales
+        from sales_item
+        where upper(status) = 'ACTIVE'
+          and upper(producttype) = 'DRINK'
+          and createdat between now() - 30 and now()
 
-        UNION ALL
+        union all
 
-        SELECT 'SUPPLEMENTS' AS label, IFNULL(SUM(totalamount), 0) AS total_sales
-        FROM sales_item
-        WHERE UPPER(status) = 'ACTIVE'
-          AND UPPER(producttype) = 'SUPPLEMENTS'
-          AND createdat BETWEEN NOW() - 30 AND NOW()
+        select 'SUPPLEMENTS' as label, ifnull(sum(totalamount), 0) as total_sales
+        from sales_item
+        where upper(status) = 'ACTIVE'
+          and upper(producttype) = 'SUPPLEMENTS'
+          and createdat between now() - 30 and now()
     </select>
 
 
@@ -62,14 +62,14 @@
          - 전체기간 기준
     =============================== -->
     <select id="selectServiceSalesChart" resultType="map">
-        SELECT 
-            UPPER(service_type) AS label,
-            IFNULL(SUM(actualamount), 0) AS total_sales
-        FROM sales_service
-        WHERE UPPER(status) = 'ACTIVE'
-          AND UPPER(service_type) IN ('PT', 'VOUCHER')
-        GROUP BY UPPER(service_type)
-        ORDER BY label
+        select 
+            upper(service_type) as label,
+            ifnull(sum(actualamount), 0) as total_sales
+        from sales_service
+        where upper(status) = 'ACTIVE'
+          and upper(service_type) in ('PT', 'VOUCHER')
+        group by upper(service_type)
+        order by label
     </select>
 
 
@@ -79,14 +79,14 @@
          - 전체기간 기준
     =============================== -->
     <select id="selectItemSalesChart" resultType="map">
-        SELECT 
-            UPPER(product_type) AS label,
-            IFNULL(SUM(totalamount), 0) AS total_sales
-        FROM sales_item
-        WHERE UPPER(status) = 'ACTIVE'
-          AND UPPER(product_type) IN ('CLOTHES', 'DRINK', 'SUPPLEMENTS')
-        GROUP BY UPPER(product_type)
-        ORDER BY label
+        select 
+            upper(product_type) as label,
+            ifnull(sum(totalamount), 0) as total_sales
+        from sales_item
+        where upper(status) = 'ACTIVE'
+          and upper(product_type) in ('CLOTHES', 'DRINK', 'SUPPLEMENTS')
+        group by upper(product_type)
+        order by label
     </select>
 
 
@@ -95,16 +95,16 @@
          - 지난달 기준, 매출 상위 5명
     =============================== -->
     <select id="selectTrainerPerformanceChart" resultType="map">
-        SELECT 
-            e.empname AS label,
-            IFNULL(SUM(p.countchange), 0) AS total_sessions
-        FROM pt_log p
-        JOIN employee e ON p.empnum = e.empnum
-        WHERE DATE_FORMAT(p.createdat, '%Y-%m') = DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 1 MONTH), '%Y-%m')
-          AND p.status IN ('소비', '예약취소')
-        GROUP BY e.empname
-        ORDER BY total_sessions DESC
-        LIMIT 5
+        select 
+            e.empname as label,
+            ifnull(sum(p.countchange), 0) as total_sessions
+        from pt_log p
+        join employee e on p.empnum = e.empnum
+        where date_format(p.createdat, '%Y-%m') = date_format(date_sub(now(), interval 1 month), '%Y-%m')
+          and p.status in ('소비', '예약취소')
+        group by e.empname
+        order by total_sessions desc
+        limit 5
     </select>
 
 
@@ -112,23 +112,23 @@
          [5] AI 회원 예측 그래프 (기존 그대로 유지)
     =============================== -->
     <select id="selectAiMemberPredictions" resultType="map">
-        SELECT 
-            DATE_FORMAT(memcreated, '%Y-%m') AS month,
-            COUNT(*) AS predictedCount,
-            '실제' AS data_type
-        FROM member
-        WHERE memcreated &lt; DATE_FORMAT(NOW(), '%Y-%m-01')
-        GROUP BY DATE_FORMAT(memcreated, '%Y-%m')
+        select 
+            date_format(memcreated, '%Y-%m') as month,
+            count(*) as predictedcount,
+            '실제' as data_type
+        from member
+        where memcreated &lt; date_format(now(), '%Y-%m-01')
+        group by date_format(memcreated, '%Y-%m')
     
-        UNION ALL
+        union all
     
-        SELECT 
-            DATE_FORMAT(predict_date, '%Y-%m') AS month,
-            predicted_count AS predictedCount,
-            '예측' AS data_type
-        FROM ai_member_prediction
+        select 
+            date_format(predict_date, '%Y-%m') as month,
+            predicted_count as predictedcount,
+            '예측' as data_type
+        from ai_member_prediction
     
-        ORDER BY month ASC
+        order by month asc
     </select>
 
 
@@ -136,14 +136,14 @@
          [6] AI 회원 예측 결과 저장 (기존 그대로 유지)
     =============================== -->
     <insert id="insertAiMemberPrediction" parameterType="map">
-        INSERT INTO ai_member_prediction (
+        insert into ai_member_prediction (
             predict_date,
             predicted_count,
             created_at
-        ) VALUES (
-            STR_TO_DATE(#{predictDate}, '%Y-%m-%d'),
+        ) values (
+            str_to_date(#{predictDate}, '%Y-%m-%d'),
             #{predictedCount, jdbcType=DECIMAL},
-            NOW()
+            now()
         )
     </insert>
     
@@ -156,21 +156,21 @@
          - 단위: 월별 합계
     =============================== -->
     <select id="selectActualSales3Years" resultType="map">
-        SELECT
-            EXTRACT(YEAR FROM s.sales_date) AS year,
-            EXTRACT(MONTH FROM s.sales_date) AS month,
-            SUM(s.totalamount) AS totalamount,
-            SUM(s.actualamount) AS actualamount
-        FROM (
-            SELECT sales_date, totalamount, actualamount FROM sales_service
-            UNION ALL
-            SELECT sales_date, totalamount, totalamount AS actualamount FROM sales_item
+        select
+            extract(year from s.sales_date) as year,
+            extract(month from s.sales_date) as month,
+            sum(s.totalamount) as totalamount,
+            sum(s.actualamount) as actualamount
+        from (
+            select sales_date, totalamount, actualamount from sales_service
+            union all
+            select sales_date, totalamount, totalamount as actualamount from sales_item
         ) s
-        WHERE EXTRACT(YEAR FROM s.sales_date)
-              BETWEEN EXTRACT(YEAR FROM NOW()) - 2
-              AND EXTRACT(YEAR FROM NOW())
-        GROUP BY EXTRACT(YEAR FROM s.sales_date), EXTRACT(MONTH FROM s.sales_date)
-        ORDER BY year, month
+        where extract(year from s.sales_date)
+              between extract(year from now()) - 2
+              and extract(year from now())
+        group by extract(year from s.sales_date), extract(month from s.sales_date)
+        order by year, month
     </select>
 
 
@@ -183,45 +183,45 @@
          - 단위: 월별 합계 (💰 매출 금액 기준)
     =============================== -->
     <select id="selectSalesWithPrediction" resultType="map">
-        SELECT
+        select
             year,
             month,
-            SUM(totalamount) AS totalamount,
-            SUM(predicted_sales) AS predicted_sales
-        FROM (
-            SELECT
-                EXTRACT(YEAR FROM s.createdat) AS year,
-                EXTRACT(MONTH FROM s.createdat) AS month,
-                SUM(s.amount) AS totalamount,
-                0 AS predicted_sales
+            sum(totalamount) as totalamount,
+            sum(predicted_sales) as predicted_sales
+        from (
+            select
+                extract(year from s.createdat) as year,
+                extract(month from s.createdat) as month,
+                sum(s.amount) as totalamount,
+                0 as predicted_sales
             FROM (
-                SELECT createdat, actualamount AS amount
-                FROM sales_service
-                WHERE UPPER(status) = 'ACTIVE'
+                select createdat, actualamount as amount
+                from sales_service
+                where upper(status) = 'ACTIVE'
     
-                UNION ALL
+                union all
     
-                SELECT createdat, totalamount AS amount
-                FROM sales_item
-                WHERE UPPER(status) = 'ACTIVE'
+                select createdat, totalamount as amount
+                from sales_item
+                where upper(status) = 'ACTIVE'
             ) s
-            WHERE EXTRACT(YEAR FROM s.createdat)
-                  BETWEEN EXTRACT(YEAR FROM NOW()) - 1
-                  AND EXTRACT(YEAR FROM NOW())
-            GROUP BY EXTRACT(YEAR FROM s.createdat), EXTRACT(MONTH FROM s.createdat)
+            where extract(year from s.createdat)
+                  between extract(year from now()) - 1
+                  and extract(year from now())
+            group by extract(year from s.createdat), extract(month from s.createdat)
     
-            UNION ALL
+            union all
     
-            SELECT
-                p.predict_year AS year,
-                p.predict_month AS month,
-                0 AS totalamount,
-                p.predicted_sales AS predicted_sales
-            FROM ai_sales_prediction p
-            WHERE p.predict_year = EXTRACT(YEAR FROM NOW()) + 1
+            select
+                p.predict_year as year,
+                p.predict_month as month,
+                0 as totalamount,
+                p.predicted_sales as predicted_sales
+            from ai_sales_prediction p
+            where p.predict_year = extract(year from now()) + 1
         )
-        GROUP BY year, month
-        ORDER BY year, month
+        group by year, month
+        order by year, month
     </select>
     
     <!-- ===============================
@@ -231,11 +231,11 @@
          - endDate < NOW() → 만료
     =============================== -->
     <select id="selectValidVoucherStats" resultType="map">
-        SELECT
-            COUNT(DISTINCT CASE WHEN v.endDate &gt;= NOW() THEN v.memNum END) AS valid,
-            COUNT(DISTINCT CASE WHEN v.endDate &lt; NOW() THEN v.memNum END) AS expired
-        FROM voucher_log v
-        WHERE v.memNum IS NOT NULL
+        select
+            count(distinct case when v.enddate &gt;= now() then v.memnum end) as valid,
+            count(distinct case when v.enddate &lt; now() then v.memnum end) as expired
+        from voucher_log v
+        where v.memnum is not null
     </select>
     
     
@@ -245,13 +245,13 @@
          - 기준: 회원(memNum)별 SUM(countChange)
     =============================== -->
     <select id="selectRemainingPtStats" resultType="map">
-        SELECT
-            COUNT(CASE WHEN total_remain &gt; 0 THEN 1 END) AS remaining_count,
-            COUNT(CASE WHEN total_remain &lt;= 0 THEN 1 END) AS exhausted_count
-        FROM (
-            SELECT memNum, SUM(countChange) AS total_remain
-            FROM pt_log
-            GROUP BY memNum
+        select
+            count(case when total_remain &gt; 0 then 1 end) as remaining_count,
+            count(case when total_remain &lt;= 0 then 1 end) as exhausted_count
+        from (
+            select memnum, sum(countchange) as total_remain
+            from pt_log
+            group by memnum
         )
     </select>
 

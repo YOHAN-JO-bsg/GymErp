@@ -8,159 +8,159 @@
 
 	<!-- 공통 결과 매핑 -->
 	<resultMap id="MemberWithStatsMap" type="MemberDto">
-		<id     property="memNum" column="memNum"/>
-		<result property="memName" column="memName"/>
-		<result property="memGender" column="memGender"/>
-		<result property="memBirthday" column="memBirthday"/>
-		<result property="memPhone" column="memPhone"/>
-		<result property="memEmail" column="memEmail"/>
-		<result property="memAddr" column="memAddr"/>
-		<result property="memCreated" column="memCreated"/>
-		<result property="memUpdated" column="memUpdated"/>
-		<result property="memProfile" column="memProfile"/>
-		<result property="memNote" column="memNote"/>
+		<id     property="memNum" column="memnum"/>
+		<result property="memName" column="memname"/>
+		<result property="memGender" column="memgender"/>
+		<result property="memBirthday" column="membirthday"/>
+		<result property="memPhone" column="memphone"/>
+		<result property="memEmail" column="mememail"/>
+		<result property="memAddr" column="memaddr"/>
+		<result property="memCreated" column="memcreated"/>
+		<result property="memUpdated" column="memupdated"/>
+		<result property="memProfile" column="memprofile"/>
+		<result property="memNote" column="memnote"/>
 		
 		<!-- 계산/조인 필드 -->
-		<result property="trainerName"      column="trainerName"/>
-		<result property="voucherStartDate" column="voucherStartDate"/>
-		<result property="voucherEndDate"   column="voucherEndDate"/>
-		<result property="ptRemain"         column="ptRemain"/>
-		<result property="membershipStatus" column="membershipStatus"/>
+		<result property="trainerName"      column="trainername"/>
+		<result property="voucherStartDate" column="voucherstartdate"/>
+		<result property="voucherEndDate"   column="voucherenddate"/>
+		<result property="ptRemain"         column="ptremain"/>
+		<result property="membershipStatus" column="membershipstatus"/>
 	</resultMap>
 	  <!-- 전체 + 통계 (상태 필터/정렬) -->
   <select id="selectAllWithStats" parameterType="map" resultMap="MemberWithStatsMap">
-    WITH latest_voucher AS (
-      SELECT memNum, voucherId, startDate, endDate
-      FROM (
-        SELECT v.*,
-               ROW_NUMBER() OVER (PARTITION BY v.memNum ORDER BY v.endDate DESC, v.voucherId DESC) rn
-        FROM voucher_log v
-      ) t WHERE rn = 1
+    with latest_voucher as (
+      select memnum, voucherid, startdate, enddate
+      from (
+        select v.*,
+               row_number() over (partition by v.memnum order by v.enddate desc, v.voucherid desc) rn
+        from voucher_log v
+      ) t where rn = 1
     ),
-    last_trainer AS (
-      SELECT memNum, empNum
-      FROM (
-        SELECT memNum, empNum,
-               ROW_NUMBER() OVER (PARTITION BY memNum ORDER BY createdAt DESC, usageId DESC) as rn
-        FROM pt_log
+    last_trainer as (
+      select memnum, empnum
+      from (
+        select memnum, empnum,
+               row_number() over (partition by memnum order by createdat desc, usageid desc) as rn
+        from pt_log
       ) t
-      WHERE rn = 1
+      where rn = 1
     ),
-    pt_balance AS (
-      SELECT memNum, IFNULL(SUM(countChange),0) AS ptRemain
-      FROM pt_log
-      GROUP BY memNum
+    pt_balance as (
+      select memnum, ifnull(sum(countchange),0) as ptremain
+      from pt_log
+      group by memnum
     )
-    SELECT
-      m.memNum, m.memName, m.memGender, m.memBirthday, m.memPhone, m.memEmail,
-      m.memAddr, m.memCreated, m.memUpdated, m.memProfile, m.memNote,
-      e.empName AS trainerName,
-      lv.startDate AS voucherStartDate,
-      lv.endDate   AS voucherEndDate,
-      pb.ptRemain  AS ptRemain,
-      CASE
-        WHEN lv.endDate IS NULL THEN '미사용중'
-        WHEN lv.endDate &lt; CURDATE() THEN '미사용중'
-        ELSE '사용중'
-      END AS membershipStatus,
-      CASE
-        WHEN lv.endDate IS NULL THEN 1
-        WHEN lv.endDate &lt; CURDATE() THEN 1
-        ELSE 0
-      END AS statusSort  -- 1=미사용중 먼저. 사용중 먼저로 바꾸려면 0/1을 뒤집거나 ORDER BY를 ASC로 변경
-    FROM MEMBER m
-    LEFT JOIN last_trainer lt ON lt.memNum = m.memNum
-    LEFT JOIN employee    e  ON e.empNum  = lt.empNum
-    LEFT JOIN latest_voucher lv ON lv.memNum = m.memNum
-    LEFT JOIN pt_balance pb   ON pb.memNum = m.memNum
-    WHERE
-      ( #{status,jdbcType=VARCHAR} IS NULL
-        OR UPPER(#{status}) = 'ALL'
-        OR (UPPER(#{status}) = 'USING'
-              AND lv.endDate IS NOT NULL
-              AND lv.endDate >= CURDATE()
+    select
+      m.memnum, m.memname, m.memgender, m.membirthday, m.memphone, m.mememail,
+      m.memaddr, m.memcreated, m.memupdated, m.memprofile, m.memnote,
+      e.empname as trainername,
+      lv.startdate as voucherstartdate,
+      lv.enddate   as voucherenddate,
+      pb.ptremain  as ptremain,
+      case
+        when lv.enddate is null then '미사용중'
+        when lv.enddate &lt; curdate() then '미사용중'
+        else '사용중'
+      END AS membershipstatus,
+      case
+        when lv.enddate is null then 1
+        when lv.enddate &lt; curdate() then 1
+        else 0
+      end as statussort  -- 1=미사용중 먼저. 사용중 먼저로 바꾸려면 0/1을 뒤집거나 ORDER BY를 ASC로 변경
+    from member m
+    left join last_trainer lt on lt.memnum = m.memnum
+    left join employee    e  on e.empnum  = lt.empnum
+    left join latest_voucher lv on lv.memnum = m.memnum
+    left join pt_balance pb   on pb.memnum = m.memnum
+    where
+      ( #{status,jdbcType=VARCHAR} is null
+        or upper(#{status}) = 'ALL'
+        or (upper(#{status}) = 'USING'
+              and lv.enddate is not null
+              and lv.enddate >= curdate()
            )
-        OR (UPPER(#{status}) = 'NOT_USING'
-              AND (lv.endDate IS NULL OR lv.endDate &lt; CURDATE())
+        or (upper(#{status}) = 'NOT_USING'
+              and (lv.enddate is null or lv.enddate &lt; curdate())
            )
       )
-    ORDER BY statusSort DESC, m.memCreated DESC
+    order by statussort desc, m.memcreated desc
   </select>
 
   <!-- 단건 상세 + 통계 -->
   <select id="getWithStats" parameterType="int" resultMap="MemberWithStatsMap">
-    WITH latest_voucher AS (
-      SELECT memNum, voucherId, startDate, endDate
-      FROM (
-        SELECT v.*,
-               ROW_NUMBER() OVER (PARTITION BY v.memNum ORDER BY v.endDate DESC, v.voucherId DESC) rn
-        FROM voucher_log v
-      ) t WHERE rn = 1
+    with latest_voucher as (
+      select memnum, voucherid, startdate, enddate
+      from (
+        select v.*,
+               row_number() over (partition by v.memnum order by v.enddate desc, v.voucherid desc) rn
+        from voucher_log v
+      ) t where rn = 1
     ),
-    last_trainer AS (
-      SELECT memNum, empNum
-      FROM (
-        SELECT memNum, empNum,
-               ROW_NUMBER() OVER (PARTITION BY memNum ORDER BY createdAt DESC, usageId DESC) as rn
-        FROM pt_log
+    last_trainer as (
+      select memnum, empnum
+      from (
+        select memnum, empnum,
+               row_number() over (partition by memnum order by createdat desc, usageid desc) as rn
+        from pt_log
       ) t
-      WHERE rn = 1
+      where rn = 1
     ),
-    pt_balance AS (
-      SELECT memNum, IFNULL(SUM(countChange),0) AS ptRemain
-      FROM pt_log
-      GROUP BY memNum
+    pt_balance as (
+      select memnum, ifnull(sum(countchange),0) as ptremain
+      from pt_log
+      group by memnum
     )
-    SELECT
-      m.memNum, m.memName, m.memGender, m.memBirthday, m.memPhone, m.memEmail,
-      m.memAddr, m.memCreated, m.memUpdated, m.memProfile, m.memNote,
-      e.empName AS trainerName,
-      lv.startDate AS voucherStartDate,
-      lv.endDate   AS voucherEndDate,
-      pb.ptRemain  AS ptRemain,
-      CASE
-        WHEN lv.endDate IS NULL THEN '미사용중'
-        WHEN lv.endDate &lt; CURDATE() THEN '미사용중'
-        ELSE '사용중'
-      END AS membershipStatus
-    FROM MEMBER m
-    LEFT JOIN last_trainer lt ON lt.memNum = m.memNum
-    LEFT JOIN employee    e  ON e.empNum  = lt.empNum
-    LEFT JOIN latest_voucher lv ON lv.memNum = m.memNum
-    LEFT JOIN pt_balance pb   ON pb.memNum = m.memNum
-    WHERE m.memNum = #{memNum}
+    select
+      m.memnum, m.memname, m.memgender, m.membirthday, m.memphone, m.mememail,
+      m.memaddr, m.memcreated, m.memupdated, m.memprofile, m.memnote,
+      e.empname as trainername,
+      lv.startdate as voucherstartdate,
+      lv.enddate   as voucherenddate,
+      pb.ptremain  as ptremain,
+      case
+        when lv.enddate is null then '미사용중'
+        when lv.enddate &lt; curdate() then '미사용중'
+        else '사용중'
+      end as membershipstatus
+    from member m
+    left join last_trainer lt on lt.memnum = m.memnum
+    left join employee    e  on e.empnum  = lt.empnum
+    left join latest_voucher lv on lv.memnum = m.memnum
+    left join pt_balance pb   on pb.memnum = m.memnum
+    where m.memnum = #{memNum}
   </select>
 	
     <!-- 전체 회원 조회 -->
     <select id="selectAll" resultType="MemberDto">
-        SELECT memNum, memName, memGender, memBirthday, memPhone, memEmail,
-               memAddr, memCreated, memUpdated, memProfile, memNote
-        FROM MEMBER
-        ORDER BY memCreated DESC
+        select memnum, memname, memgender, membirthday, memphone, mememail,
+               memaddr, memcreated, memupdated, memprofile, memnote
+        from member
+        order by memcreated desc
     </select>
 
     <!-- 회원 상세 조회 -->
     <select id="getByNum" parameterType="int" resultType="MemberDto">
-        SELECT memNum, memName, memGender, memBirthday, memPhone, memEmail,
-               memAddr, memCreated, memUpdated, memProfile, memNote
-        FROM MEMBER
-        WHERE memNum = #{memNum}
+        select memnum, memname, memgender, membirthday, memphone, mememail,
+               memaddr, memcreated, memupdated, memprofile, memnote
+        from member
+        where memnum = #{memNum}
     </select>
 
     <!-- 회원 등록 -->
     <insert id="insert" parameterType="MemberDto" useGeneratedKeys="true" keyProperty="memNum">
-        INSERT INTO MEMBER (
-            memName, memGender, memBirthday, memPhone,
-            memEmail, memAddr, memCreated, memUpdated, memProfile, memNote
-        ) VALUES (
+        insert into member (
+            memname, memgender, membirthday, memphone,
+            mememail, memaddr, memcreated, memupdated, memprofile, memnote
+        ) values (
             #{memName,    jdbcType=VARCHAR},
             #{memGender,  jdbcType=VARCHAR},
             #{memBirthday,jdbcType=DATE},
             #{memPhone,   jdbcType=VARCHAR},
             #{memEmail,   jdbcType=VARCHAR},
             #{memAddr,    jdbcType=VARCHAR},
-            CURRENT_TIMESTAMP,
-            CURRENT_TIMESTAMP,
+            current_timestamp,
+            current_timestamp,
             #{memProfile, jdbcType=VARCHAR},
             #{memNote,    jdbcType=VARCHAR}
         )
@@ -168,24 +168,24 @@
 
     <!-- 회원 수정 -->
     <update id="update" parameterType="MemberDto">
-        UPDATE MEMBER
-        SET
-            memName     = #{memName,    jdbcType=VARCHAR},
-            memGender   = #{memGender,  jdbcType=VARCHAR},
-            memBirthday = #{memBirthday,jdbcType=DATE},
-            memPhone    = #{memPhone,   jdbcType=VARCHAR},
-            memEmail    = #{memEmail,   jdbcType=VARCHAR},
-            memAddr     = #{memAddr,    jdbcType=VARCHAR},
-            memProfile  = #{memProfile, jdbcType=VARCHAR},
-            memNote     = #{memNote,    jdbcType=VARCHAR},
-            memUpdated  = CURRENT_TIMESTAMP
-        WHERE memNum = #{memNum}
+        update member
+        set
+            memname     = #{memName,    jdbcType=VARCHAR},
+            memgender   = #{memGender,  jdbcType=VARCHAR},
+            membirthday = #{memBirthday,jdbcType=DATE},
+            memphone    = #{memPhone,   jdbcType=VARCHAR},
+            mememail    = #{memEmail,   jdbcType=VARCHAR},
+            memaddr     = #{memAddr,    jdbcType=VARCHAR},
+            memprofile  = #{memProfile, jdbcType=VARCHAR},
+            memnote     = #{memNote,    jdbcType=VARCHAR},
+            memupdated  = current_timestamp
+        where memnum = #{memNum}
     </update>
 
     <!-- 회원 삭제 (물리삭제, 추후 상태 컬럼으로 변경 가능) -->
     <delete id="delete" parameterType="int">
-        DELETE FROM MEMBER
-        WHERE memNum = #{memNum}
+        delete from member
+        where memnum = #{memNum}
     </delete>
 
     
@@ -199,36 +199,36 @@
 
     <!-- 회원 이름 조회 -->
     <select id="selectMemberNameById" parameterType="int" resultType="string">
-        SELECT memName
-        FROM MEMBER
-        WHERE memNum = #{memNum}
+        select memname
+        from member
+        where memnum = #{memNum}
     </select>
 
     <!-- 회원 존재 여부 확인 -->
     <select id="checkMemberExists" parameterType="int" resultType="int">
-        SELECT COUNT(*)
-        FROM MEMBER
-        WHERE memNum = #{memNum}
+        select count(*)
+        from member
+        where memnum = #{memNum}
     </select>
 
     <!-- 프로필 이미지 수정 -->
     <update id="updateProfile" parameterType="MemberDto">
-        UPDATE MEMBER
-        SET memProfile = #{memProfile, jdbcType=VARCHAR},
-            memUpdated = CURRENT_TIMESTAMP
-        WHERE memNum = #{memNum}
+        update member
+        set memprofile = #{memProfile, jdbcType=VARCHAR},
+            memupdated = current_timestamp
+        where memnum = #{memNum}
     </update>
 
     <!-- 회원 검색 -->
     <select id="search" resultType="MemberDto">
-        SELECT memNum, memName, memGender, memBirthday, memPhone, memEmail,
-               memAddr, memCreated, memUpdated, memProfile, memNote
-        FROM MEMBER
-        WHERE
-            LOWER(memName)  LIKE CONCAT('%', LOWER(#{keyword}), '%')
-        OR  LOWER(memPhone) LIKE CONCAT('%', LOWER(#{keyword}), '%')
-        OR  LOWER(memEmail) LIKE CONCAT('%', LOWER(#{keyword}), '%')
-        ORDER BY memCreated DESC
+        select memnum, memname, memgender, membirthday, memphone, mememail,
+               memaddr, memcreated, memupdated, memprofile, memnote
+        from member
+        where
+            lower(memname)  like concat('%', lower(#{keyword}), '%')
+        or  lower(memphone) like concat('%', lower(#{keyword}), '%')
+        or  lower(mememail) like concat('%', lower(#{keyword}), '%')
+        order by memcreated desc
     </select>
 
 </mapper>

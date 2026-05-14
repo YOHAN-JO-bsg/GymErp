@@ -7,26 +7,26 @@
 
     <!-- 직원 전체 조회 -->
     <select id="getAllEmp" resultType="EmpDto">
-        SELECT * 
-        FROM EMPLOYEE
-        ORDER BY EMPNUM DESC
+        select * 
+        from employee
+        order by empnum desc
     </select>
 
 
     <!-- 직원 상세 조회 -->
     <select id="getEmpByNum" parameterType="int" resultType="EmpDto">
-        SELECT * 
-        FROM EMPLOYEE
-        WHERE EMPNUM = #{empNum}
+        select * 
+        from employee
+        where empnum = #{empNum}
     </select>
 
     <!-- 직원 등록: sequence 로 PK 발급 + 비번 포함 -->
     <insert id="insertEmp" parameterType="EmpDto" useGeneratedKeys="true" keyProperty="empNum">
-        INSERT INTO EMPLOYEE (
-            EMPNAME, GENDER, EMPADDRESS, EMPBIRTH,
-            EMPPHONE, EMPEMAIL, PASSWORD, HIREDATE, FIREDATE,
-            PROFILEIMAGE, EMPMEMO, ROLE
-        ) VALUES (
+        insert into employee (
+            empname, gender, empaddress, empbirth,
+            empphone, empemail, password, hiredate, firedate,
+            profileimage, empmemo, role
+        ) values (
 				#{empName, jdbcType=VARCHAR},
 				#{gender, jdbcType=VARCHAR},
 				#{empAddress, jdbcType=VARCHAR},
@@ -44,203 +44,203 @@
 
 	<!-- 직원 수정 -->
 	<update id="updateEmp" parameterType="EmpDto">
-	    UPDATE EMPLOYEE
-	    SET 
-	        EMPNAME = #{empName, jdbcType=VARCHAR},
-	        GENDER = #{gender, jdbcType=VARCHAR},
-	        EMPADDRESS = #{empAddress, jdbcType=VARCHAR},
-	        EMPBIRTH = #{empBirth, jdbcType=DATE},
-	        EMPPHONE = #{empPhone, jdbcType=VARCHAR},
-	        EMPEMAIL = #{empEmail, jdbcType=VARCHAR},
-	        HIREDATE = #{hireDate, jdbcType=DATE},
-	        FIREDATE = #{fireDate, jdbcType=DATE},
-	        PROFILEIMAGE = #{profileImage, jdbcType=VARCHAR},
-	        EMPMEMO = #{empMemo, jdbcType=VARCHAR},
-	        ROLE = #{role, jdbcType=VARCHAR}
-	    WHERE EMPNUM = #{empNum}
+	    update employee
+	    set 
+	        empname = #{empName, jdbcType=VARCHAR},
+	        gender = #{gender, jdbcType=VARCHAR},
+	        empaddress = #{empAddress, jdbcType=VARCHAR},
+	        empbirth = #{empBirth, jdbcType=DATE},
+	        empphone = #{empPhone, jdbcType=VARCHAR},
+	        empemail = #{empEmail, jdbcType=VARCHAR},
+	        hiredate = #{hireDate, jdbcType=DATE},
+	        firedate = #{fireDate, jdbcType=DATE},
+	        profileimage = #{profileImage, jdbcType=VARCHAR},
+	        empmemo = #{empMemo, jdbcType=VARCHAR},
+	        role = #{role, jdbcType=VARCHAR}
+	    where empnum = #{empNum}
 	</update>
 
 
     <!-- 직원 삭제 -->
     <delete id="deleteEmp" parameterType="int">
-        DELETE FROM EMPLOYEE WHERE EMPNUM = #{empNum}
+        delete from employee where empnum = #{empNum}
     </delete>
 
 
     <!-- 직원 검색 -->
     <select id="searchEmp" resultType="EmpDto">
-        SELECT *
-        FROM EMPLOYEE
+        select *
+        from employee
         <where>
             <if test="filter == 'all'">
-                (EMPNAME LIKE CONCAT('%', #{keyword}, '%')
-                 OR EMPEMAIL LIKE CONCAT('%', #{keyword}, '%'))
+                (empname like concat('%', #{keyword}, '%')
+                 or empemail like concat('%', #{keyword}, '%'))
             </if>
 
             <if test="filter == 'name'">
-                EMPNAME LIKE CONCAT('%', #{keyword}, '%')
+                empname like concat('%', #{keyword}, '%')
             </if>
 
             <if test="filter == 'email'">
-                EMPEMAIL LIKE CONCAT('%', #{keyword}, '%')
+                empemail like concat('%', #{keyword}, '%')
             </if>
         </where>
-        ORDER BY EMPNUM DESC
+        order by empnum desc
     </select>
     
     <!-- 로그인 전용: 이메일로 비번 포함 조회 -->
     <resultMap type="EmpDto" id="empAuthMap">
-    	<id property="empNum" column="EMPNUM"/>
-    	<result property="empName" column="EMPNAME"/>
-    	<result property="empEmail" column="EMPEMAIL"/>
-    	<result property="password" column="PASSWORD"/>
-    	<result property="role" column="ROLE"/>
+    	<id property="empNum" column="empnum"/>
+    	<result property="empName" column="empname"/>
+    	<result property="empEmail" column="empemail"/>
+    	<result property="password" column="password"/>
+    	<result property="role" column="role"/>
     </resultMap>
     
     <select id="selectAuthByEmail" parameterType="string" resultMap="empAuthMap">
-    	SELECT EMPNUM, EMPNAME, EMPEMAIL, PASSWORD, ROLE
-    		FROM EMPLOYEE
-    	WHERE EMPEMAIL = #{empEmail}
+    	select empnum, empname, empemail, password, role
+    		from employee
+    	where empemail = #{empEmail}
     </select>
     
     <!-- 비밀번호만 변경 -->
     <update id="updatePassword">
-    	UPDATE EMPLOYEE
-    		SET PASSWORD = #{password}
-    	WHERE EMPNUM = #{empNum}
+    	update employee
+    		set password = #{password}
+    	where empnum = #{empNum}
     </update>
     <!-- 비빈 해쉬 조회용 -->
 	<select id="selectPasswordHashByEmpNum" resultType="string">
-		SELECT PASSWORD
-			FROM EMPLOYEE
-		WHERE EMPNUM = #{empNum}
+		select password
+			from employee
+		where empnum = #{empNum}
 	</select>
 
 	<!-- 직원 검색 + 페이징 -->
 	<select id="getEmpListPaged" resultType="EmpDto">
-	    SELECT 
-	        EMPNUM, EMPNAME, GENDER, EMPADDRESS,
-	        EMPBIRTH, EMPPHONE, EMPEMAIL, HIREDATE,
-	        FIREDATE, PROFILEIMAGE, EMPMEMO, ROLE
-	    FROM EMPLOYEE
+	    select 
+	        empnum, empname, gender, empaddress,
+	        empbirth, empphone, empemail, hiredate,
+	        firedate, profileimage, empmemo, role
+	    from employee
 	    <where>
 	        <if test="type == 'all' and keyword != null and keyword != ''">
-	            (EMPNAME LIKE CONCAT('%', #{keyword}, '%') 
-	            OR EMPPHONE LIKE CONCAT('%', #{keyword}, '%'))
+	            (empname like concat('%', #{keyword}, '%') 
+	            or empphone like concat('%', #{keyword}, '%'))
 	        </if>
 	        <if test="type == 'name' and keyword != null and keyword != ''">
-	            EMPNAME LIKE CONCAT('%', #{keyword}, '%')
+	            empname like concat('%', #{keyword}, '%')
 	        </if>
 	        <if test="type == 'phone' and keyword != null and keyword != ''">
-	            EMPPHONE LIKE CONCAT('%', #{keyword}, '%')
+	            empphone like concat('%', #{keyword}, '%')
 	        </if>
 	        <if test="status == 'ACTIVE'">
-	          FIREDATE IS NULL
+	          firedate is null
 	        </if>
 	        <if test="status == 'RESIGNED'">
-	          FIREDATE IS NOT NULL
+	          firedate is not null
 	        </if>
 	    </where>
-	    ORDER BY EMPNUM DESC
-	    OFFSET #{start} LIMIT (#{end} - #{start} + 1)
+	    order by empnum desc
+	    limit (#{end} - #{start} + 1) offset #{start}
 	</select>
 	
 	
 	<!-- 전체 행 개수 (페이징용) -->
 	<select id="getTotalCount" resultType="int">
-	    SELECT COUNT(*) 
-	    FROM EMPLOYEE
+	    select count(*) 
+	    from employee
 	    <where>
 	        <if test="type == 'all' and keyword != null and keyword != ''">
-	            (EMPNAME LIKE CONCAT('%', #{keyword}, '%') 
-	            OR EMPPHONE LIKE CONCAT('%', #{keyword}, '%'))
+	            (empname like concat('%', #{keyword}, '%') 
+	            or empphone like concat('%', #{keyword}, '%'))
 	        </if>
 	        <if test="type == 'name' and keyword != null and keyword != ''">
-	            EMPNAME LIKE CONCAT('%', #{keyword}, '%')
+	            empname like concat('%', #{keyword}, '%')
 	        </if>
 	        <if test="type == 'phone' and keyword != null and keyword != ''">
-	            EMPPHONE LIKE CONCAT('%', #{keyword}, '%')
+	            empphone like concat('%', #{keyword}, '%')
 	        </if>
 	        <if test="status == 'ACTIVE'">
-		      FIREDATE IS NULL
+		      firedate is null
 		    </if>
 		    <if test="status == 'RESIGNED'">
-		      FIREDATE IS NOT NULL
+		      firedate is not null
 		    </if>
 	    </where>
 	</select>
 		
 	<!-- 프로필 이미지 업로드 -->
 	<update id="updateProfileImage">
-	    UPDATE EMPLOYEE
-	    SET PROFILEIMAGE = #{fileName}
-	    WHERE EMPNUM = #{empNum}
+	    update employee
+	    set profileimage = #{fileName}
+	    where empnum = #{empNum}
 	</update>
 	
 	<!-- 이용내역 DB 관련 내용입니다.  -->
     
     <!-- 직원 이름 단건 조회 (로그용: empNum → empName 매핑) -->
 	<select id="selectEmployeeNameById" parameterType="int" resultType="string">
-		SELECT empName
-        FROM EMPLOYEE
-        WHERE empNum = #{empNum}
+		select empname
+        from employee
+        where empnum = #{empNum}
 	</select>
 	
     <!-- 직원 존재 여부 확인 (판매 등록 시 유효성 검증용) -->
     <select id="checkEmployeeExists" parameterType="int" resultType="int">
-        SELECT COUNT(*)
-        FROM EMPLOYEE
-        WHERE empNum = #{empNum}
+        select count(*)
+        from employee
+        where empnum = #{empNum}
     </select>
     
     <!-- 이메일 중복 검사 -->
     <select id="existsByEmail" parameterType="string" resultType="int">
-	  SELECT COUNT(*) FROM EMPLOYEE WHERE EMPEMAIL = #{email}
+	  select count(*) from employee where empemail = #{email}
 	</select>
 	
 	<!-- 퇴사 처리: FIREDATE 찍고, 사유를 메모에 남김 -->
 	<update id="markResigned" parameterType="map">
-	  UPDATE EMPLOYEE
-	  SET
-	    FIREDATE = IFNULL(FIREDATE, NOW()),
-	    EMPMEMO = CASE
-	                WHEN #{reason} IS NOT NULL
-	                THEN CONCAT(IFNULL(EMPMEMO,''), CHAR(10), '[퇴사사유] ', #{reason})
-	                ELSE EMPMEMO
-	              END
-	  WHERE EMPNUM = #{empNum}
+	  update employee
+	  set
+	    firedate = ifnull(firedate, now()),
+	    empmemo = case
+	                when #{reason} is not null
+	                then concat(ifnull(empmemo,''), char(10), '[퇴사사유] ', #{reason})
+	                else empmemo
+	              end
+	  where empnum = #{empNum}
 	</update>
 	
 	<!-- 특정 직원의 회원 조회 조건:(잔여 PT > 0, 최소 1회 사용) -->
 	<select id="selectManagedMembersWithPtBySchedule" parameterType="int" resultType="com.example.gymerp.dto.MemberDto">
-	  WITH MINE AS (
-	    SELECT DISTINCT S.MEMNUM
-	    FROM SCHEDULE S
-	    WHERE S.EMPNUM = #{empNum}
-	      AND S.CODEBID IN ('PT','SCHEDULE-PT')
+	  with mine as (
+	    select distinct s.memnum
+	    from schedule s
+	    where s.empnum = #{empNum}
+	      and s.codebid in ('PT','SCHEDULE-PT')
 	  ),
-	  AGG AS (
-	    SELECT
-	      MEMNUM,
-	      SUM(COUNTCHANGE) AS ptRemain,
-	      SUM(CASE WHEN COUNTCHANGE &lt; 0 THEN 1 ELSE 0 END) AS usedCount,
-	      MAX(CASE WHEN COUNTCHANGE &lt; 0 THEN CREATEDAT END) AS lastUseAt
-	    FROM PT_LOG
-	    GROUP BY MEMNUM
+	  agg as (
+	    select
+	      memnum,
+	      sum(countchange) as ptremain,
+	      sum(case when countchange &lt; 0 then 1 else 0 end) as usedcount,
+	      max(case when countchange &lt; 0 then createdat end) as lastuseat
+	    from pt_log
+	    group by memnum
 	  )
-	  SELECT
-	    M.MEMNUM   AS memNum,
-	    M.MEMNAME  AS memName,
-	    M.MEMPHONE AS memPhone,
-	    M.MEMEMAIL AS memEmail,
-	    IFNULL(A.ptRemain,0)  AS ptRemain,
-	    IFNULL(A.usedCount,0) AS usedCount,
-	    A.lastUseAt        AS lastUseAt
-	  FROM MINE X
-	  JOIN MEMBER M ON M.MEMNUM = X.MEMNUM
-	  LEFT JOIN AGG A ON A.MEMNUM = X.MEMNUM
-	  WHERE IFNULL(A.ptRemain,0) > 0
-	    AND IFNULL(A.usedCount,0) >= 1
-	  ORDER BY M.MEMNAME
+	  select
+	    m.memnum   as memnum,
+	    m.memname  as memname,
+	    m.memphone as memphone,
+	    m.mememail as mememail,
+	    ifnull(a.ptremain,0)  as ptremain,
+	    ifnull(a.usedcount,0) as usedcount,
+	    a.lastuseat        as lastuseat
+	  from mine x
+	  join member m on m.memnum = x.memnum
+	  left join agg a on a.memnum = x.memnum
+	  where ifnull(a.ptremain,0) > 0
+	    and ifnull(a.usedcount,0) >= 1
+	  order by m.memname
 	</select>
 </mapper>

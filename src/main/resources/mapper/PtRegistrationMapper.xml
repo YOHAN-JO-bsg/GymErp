@@ -7,91 +7,91 @@
 
   <!-- 전체 예약 목록 조회 -->
     <select id="getAllPtRegistration" resultType="com.example.gymerp.dto.PtRegistrationDto">
-        SELECT 
-            REGNUM,EMPNUM,MEMNUM,SHNUM,REGCREATED,REGTIME,
-            LASTTIME,REGDATE,REGUPDATEDAT,REGNOTE
-        FROM REGISTRATION
-        ORDER BY REGNUM DESC
+        select 
+            regnum,empnum,memnum,shnum,regcreated,regtime,
+            lasttime,regdate,regupdatedat,regnote
+        from registration
+        order by regnum desc
     </select>
 
   <!-- 단일 예약 조회 -->
     <select id="getPtRegistrationById" parameterType="int" resultType="com.example.gymerp.dto.PtRegistrationDto">
-       SELECT 
-            REGNUM,
-            EMPNUM,
-            MEMNUM,
-            SHNUM,
-            REGCREATED,
-            REGUPDATEDAT,
-            REGNOTE
-        FROM REGISTRATION
-        WHERE REGNUM = #{regNum}
+       select 
+            regnum,
+            empnum,
+            memnum,
+            shnum,
+            regcreated,
+            regupdatedat,
+            regnote
+        from registration
+        where regnum = #{regNum}
     </select>
     
 	<!-- 일정번호(shNum)로 조회 -->
     <select id="getByShNum" parameterType="int" resultType="com.example.gymerp.dto.PtRegistrationDto">
-        SELECT 
-            REGNUM, EMPNUM, MEMNUM, SHNUM, REGCREATED,
-            REGUPDATEDAT, REGNOTE
-        FROM REGISTRATION
-        WHERE SHNUM = #{shNum}
+        select 
+            regnum, empnum, memnum, shnum, regcreated,
+            regupdatedat, regnote
+        from registration
+        where shnum = #{shNum}
     </select>
     
   	<!-- 예약 등록 -->
 	<insert id="insertPtRegistration" parameterType="PtRegistrationDto" useGeneratedKeys="true" keyProperty="regNum">
-	    INSERT INTO REGISTRATION (
-	        EMPNUM, MEMNUM, SHNUM, REGCREATED, REGUPDATEDAT, REGNOTE
+	    insert into registration (
+	        empnum, memnum, shnum, regcreated, regupdatedat, regnote
 	    )
-	    VALUES (
+	    values (
 	        #{empNum}, 
 	        #{memNum}, 
 	        #{shNum}, 
-	        SYSTIMESTAMP, 
-	        SYSTIMESTAMP, 
+	        current_timestamp, 
+	        current_timestamp, 
 	        #{regNote}
 	    )
 	</insert>
 
   	<!-- 예약 수정 -->
     <update id="updatePtRegistration" parameterType="com.example.gymerp.dto.PtRegistrationDto">
-        UPDATE REGISTRATION
-        SET 
-            EMPNUM = #{empNum},
-            MEMNUM = #{memNum},
-            SHNUM = #{shNum},
-            REGTIME = #{regTime},
-            LASTTIME = #{lastTime},
-            REGDATE = #{regDate},
-            REGNOTE = #{regNote},
-            REGUPDATEDAT = SYSTIMESTAMP
-        WHERE REGNUM = #{regNum}
+        update registration
+        set 
+            empnum = #{empNum},
+            memnum = #{memNum},
+            shnum = #{shNum},
+            regtime = #{regTime},
+            lasttime = #{lastTime},
+            regdate = #{regDate},
+            regnote = #{regNote},
+            regupdatedat = current_timestamp
+        where regnum = #{regNum}
     </update>
 	
     <!-- 예약 삭제 -->
     <delete id="deletePtRegistration" parameterType="int">
-        DELETE FROM REGISTRATION
-        WHERE REGNUM = #{regNum}
+        delete from registration
+        where regnum = #{regNum}
     </delete>
     
     <!-- 스케줄 번호로 PT 등록번호 조회 -->
     <select id="findRegNumByShNum" parameterType="int" resultType="int">
-        SELECT regNum
-	    FROM REGISTRATION
-	    WHERE shNum = #{shNum}
+        select regnum
+	    from registration
+	    where shnum = #{shNum}
     </select>
     
     <!-- PT 회차 차감 -->
 	<update id="decreaseRemainingCount" parameterType="int">
-	    UPDATE MEMBERSHIP
-	    SET REMAINING_COUNT = REMAINING_COUNT - 1
-	    WHERE MEMNUM = #{memNum}
+	    update membership
+	    set remaining_count = remaining_count - 1
+	    where memnum = #{memNum}
 	</update>
 	
 	<!-- PT 회차 복원 -->
 	<update id="increaseRemainingCount" parameterType="int">
-	    UPDATE MEMBERSHIP
-	    SET REMAINING_COUNT = REMAINING_COUNT + 1
-	    WHERE MEMNUM = #{memNum}
+	    update membership
+	    set remaining_count = remaining_count + 1
+	    where memnum = #{memNum}
 	</update>
 	
 	
@@ -99,38 +99,37 @@
 	
 	<!-- 조건을 모두 만족할 때만 REGISTRATION INSERT -->
 	<insert id="insertRegistrationIfAllowed" parameterType="com.example.gymerp.dto.PtRegistrationDto" useGeneratedKeys="true" keyProperty="regNum">
-	  INSERT INTO REGISTRATION (
-	    EMPNUM, MEMNUM, SHNUM, REGCREATED, REGUPDATEDAT, REGNOTE
+	  insert into registration (
+	    empnum, memnum, shnum, regcreated, regupdatedat, regnote
 	  )
-	  SELECT
-	    #{empNum}, #{memNum}, #{shNum}, SYSTIMESTAMP, SYSTIMESTAMP, #{regNote}
-	  FROM dual
-	  WHERE
+	  select
+	    #{empNum}, #{memNum}, #{shNum}, current_timestamp, current_timestamp, #{regNote}
+	  where
 	    /* 유효 회원권 존재 */
-	    EXISTS (
-	      SELECT 1 FROM voucher_log
-	      WHERE memNum = #{memNum}
-	        AND endDate >= NOW()
+	    exists (
+	      select 1 from voucher_log
+	      where memnum = #{memNum}
+	        and enddate >= now()
 	    )
 	    /* 잔여 PT > 0 */
-	    AND (
-	      SELECT IFNULL(SUM(countChange), 0)
-	      FROM pt_log
-	      WHERE memNum = #{memNum}
+	    and (
+	      select ifnull(sum(countchange), 0)
+	      from pt_log
+	      where memnum = #{memNum}
 	    ) > 0
 	    /* shNum 중복 없음 */
-	    AND NOT EXISTS (
-	      SELECT 1 FROM REGISTRATION
-	      WHERE shNum = #{shNum}
+	    and not exists (
+	      select 1 from registration
+	      where shnum = #{shNum}
 	    )
 	</insert>
 
 <!-- ============================================================================================= -->
 	  <!-- 등록 번호에 대한 회원 번호 갱신 -->
   <update id="updateRegistrationMemNum" parameterType="map">
-      UPDATE REGISTRATION
-         SET memNum = #{newMemNum}
-       WHERE regNum = #{regNum}
+      update registration
+         set memnum = #{newMemNum}
+       where regnum = #{regNum}
   </update>
 
 	

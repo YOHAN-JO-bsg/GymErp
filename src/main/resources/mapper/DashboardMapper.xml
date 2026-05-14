@@ -5,35 +5,34 @@
 
   <!-- resultMap 불필요: alias를 DTO 필드와 동일하게 주고 resultType 사용 -->
   <select id="selectKpis" resultType="com.example.gymerp.dto.DashboardKpiDto">
-    SELECT
-      /* 활성 회원: ENDDATE 안 지난 바우처 보유자(필요 시 STARTDATE 조건 추가) */
-      (SELECT COUNT(DISTINCT v.MEMNUM)
-         FROM VOUCHER_LOG v
-        WHERE v.ENDDATE >= TRUNC(NOW())
-      ) AS activeMembers,
+    select
+      /* 활성 회원: enddate 안 지난 바우처 보유자(필요 시 startdate 조건 추가) */
+      (select count(distinct v.memnum)
+         from voucher_log v
+        where v.enddate >= curdate()
+      ) as activemembers,
 
-      /* 이번 달 신규 가입: MEMBER.CREATEDAT 기준 */
-      (SELECT COUNT(*)
-         FROM MEMBER m
-        WHERE m.memCreated >= TRUNC(NOW(),'MM')
-          AND m.memCreated &lt; ADD_MONTHS(TRUNC(NOW(),'MM'),1)
-      ) AS monthNewMembers,
+      /* 이번 달 신규 가입: member.memcreated 기준 */
+      (select count(*)
+         from member m
+        where m.memcreated >= date_format(now(), '%Y-%m-01')
+          and m.memcreated &lt; date_add(date_format(now(), '%Y-%m-01'), interval 1 month)
+      ) as monthnewmembers,
 
-      /* 월 누적 매출: 서비스(ACTUALAMOUNT) + 아이템(TOTALAMOUNT) */
+      /* 월 누적 매출: 서비스(actualamount) + 아이템(totalamount) */
       (
-        IFNULL( (SELECT SUM(s.ACTUALAMOUNT)
-                FROM SALES_SERVICE s
-               WHERE s.CREATEDAT >= TRUNC(NOW(),'MM')
-                 AND s.CREATEDAT &lt; ADD_MONTHS(TRUNC(NOW(),'MM'),1)
+        ifnull( (select sum(s.actualamount)
+                from sales_service s
+               where s.createdat >= date_format(now(), '%Y-%m-01')
+                 and s.createdat &lt; date_add(date_format(now(), '%Y-%m-01'), interval 1 month)
             ), 0)
         +
-        IFNULL( (SELECT SUM(i.TOTALAMOUNT)
-                FROM SALES_ITEM i
-               WHERE i.CREATEDAT >= TRUNC(NOW(),'MM')
-                 AND i.CREATEDAT &lt; ADD_MONTHS(TRUNC(NOW(),'MM'),1)
+        ifnull( (select sum(i.totalamount)
+                from sales_item i
+               where i.createdat >= date_format(now(), '%Y-%m-01')
+                 and i.createdat &lt; date_add(date_format(now(), '%Y-%m-01'), interval 1 month)
             ), 0)
-      ) AS mtdRevenue
-    FROM dual
+      ) as mtdrevenue
   </select>
 
 </mapper>

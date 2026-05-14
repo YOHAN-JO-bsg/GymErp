@@ -4,161 +4,161 @@
 <mapper namespace="StockMapper">
 
    <select id="getAvailableQty" parameterType="int" resultType="int">
-	  SELECT
-	    (COALESCE( (SELECT SUM(quantity) FROM Purchase        WHERE productId = #{productId}), 0 )
-	  - COALESCE( (SELECT SUM(quantity) FROM StockAdjustment WHERE productId = #{productId}), 0 )
-	  - COALESCE((SELECT SUM(quantity) FROM Sales_Item WHERE productId = #{productId} AND status = 'ACTIVE'), 0))
-	  AS availableQty
+	  select
+	    (coalesce( (select sum(quantity) from purchase        where productid = #{productId}), 0 )
+	  - coalesce( (select sum(quantity) from stockadjustment where productid = #{productId}), 0 )
+	  - coalesce((select sum(quantity) from sales_item where productid = #{productId} and status = 'ACTIVE'), 0))
+	  as availableqty
 	</select>
 
 	<select id="getPurchaseList" parameterType="map" resultType="PurchaseDto">
-        SELECT
-            p.purchaseId  AS purchaseId,
-            p.productId   AS productId,
-            p.codeBId     AS codeBId,
-            p.createdAt   AS createdAt,
-            p.quantity    AS quantity,
-            p.notes       AS notes
-        FROM PURCHASE p
-        WHERE p.productId = #{productId}
+        select
+            p.purchaseid  as purchaseid,
+            p.productid   as productid,
+            p.codebid     as codebid,
+            p.createdat   as createdat,
+            p.quantity    as quantity,
+            p.notes       as notes
+        from purchase p
+        where p.productid = #{productId}
 		<if test="startDate != null and startDate != ''">
-			AND p.createdAt >= STR_TO_DATE(#{startDate}, '%Y-%m-%d')
+			and p.createdat >= str_to_date(#{startDate}, '%Y-%m-%d')
 		</if>
 		<if test="endDate != null and endDate != ''">
-			AND p.createdAt &lt;= STR_TO_DATE(#{endDate}, '%Y-%m-%d') + 0.99999
+			and p.createdat &lt;= str_to_date(#{endDate}, '%Y-%m-%d') + 0.99999
 		</if>
-	    ORDER BY createdAt DESC, purchaseId DESC
-	    LIMIT #{size} OFFSET #{offset}
+	    order by createdat desc, purchaseid desc
+	    limit #{size} offset #{offset}
 	</select>
 	
 	<select id="getPurchaseListCount" parameterType="map" resultType="int">
-	    SELECT COUNT(*)
-	    FROM PURCHASE p
-	    WHERE p.productId = #{productId}
+	    select count(*)
+	    from purchase p
+	    where p.productid = #{productId}
 		<if test="startDate != null and startDate != ''">
-			AND p.createdAt >= STR_TO_DATE(#{startDate}, '%Y-%m-%d')
+			and p.createdat >= str_to_date(#{startDate}, '%Y-%m-%d')
 		</if>
 		<if test="endDate != null and endDate != ''">
-			AND p.createdAt &lt;= STR_TO_DATE(#{endDate}, '%Y-%m-%d') + 0.99999
+			and p.createdat &lt;= str_to_date(#{endDate}, '%Y-%m-%d') + 0.99999
 		</if>
     </select>
 	
 	<select id="getAdjustStockAndSalesList" parameterType="map" resultType="StockAdjustmentDto">
-        SELECT
-            t.adjustmentId AS adjustmentId,
-            t.productId    AS productId,
-            t.codeBId      AS codeBId,
-            t.createdAt    AS createdAt,
-            t.quantity     AS quantity,
-            t.notes        AS notes
-        FROM (
-            SELECT
-                sa.adjustmentId AS adjustmentId,
-                sa.productId    AS productId,
-                sa.codeBId      AS codeBId,
-                sa.createdAt    AS createdAt,
-                sa.quantity     AS quantity,
-                sa.notes        AS notes
-            FROM STOCKADJUSTMENT sa
-            WHERE sa.productId = #{productId}
+        select
+            t.adjustmentid as adjustmentid,
+            t.productid    as productid,
+            t.codebid      as codebid,
+            t.createdat    as createdat,
+            t.quantity     as quantity,
+            t.notes        as notes
+        from (
+            select
+                sa.adjustmentid as adjustmentid,
+                sa.productid    as productid,
+                sa.codebid      as codebid,
+                sa.createdat    as createdat,
+                sa.quantity     as quantity,
+                sa.notes        as notes
+            from stockadjustment sa
+            where sa.productid = #{productId}
 			<if test="startDate != null and startDate != ''">
-				AND sa.createdAt >= STR_TO_DATE(#{startDate}, '%Y-%m-%d')
+				and sa.createdat >= str_to_date(#{startDate}, '%Y-%m-%d')
 			</if>
 			<if test="endDate != null and endDate != ''">
-				AND sa.createdAt &lt;= STR_TO_DATE(#{endDate}, '%Y-%m-%d') + 0.99999
+				and sa.createdat &lt;= str_to_date(#{endDate}, '%Y-%m-%d') + 0.99999
 			</if>
 
-           UNION ALL
+           union all
 
-           SELECT
-               si.itemSalesId  AS adjustmentId,
-               si.productId    AS productId,
-               'SALES'         AS codeBId,
-               si.createdAt    AS createdAt,
-               si.quantity     AS quantity,
-               '상품 판매'      AS notes
-           FROM SALES_ITEM si
-           WHERE si.productId = #{productId}
+           select
+               si.itemsalesid  as adjustmentid,
+               si.productid    as productid,
+               'SALES'         as codebid,
+               si.createdat    as createdat,
+               si.quantity     as quantity,
+               '상품 판매'      as notes
+           from sales_item si
+           where si.productid = #{productId}
 			<if test="startDate != null and startDate != ''">
-				AND si.createdAt >= STR_TO_DATE(#{startDate}, '%Y-%m-%d')
+				and si.createdat >= str_to_date(#{startDate}, '%Y-%m-%d')
 			</if>
 			<if test="endDate != null and endDate != ''">
-				AND si.createdAt &lt;= STR_TO_DATE(#{endDate}, '%Y-%m-%d') + 0.99999
+				and si.createdat &lt;= str_to_date(#{endDate}, '%Y-%m-%d') + 0.99999
 			</if>
-            AND si.status = 'ACTIVE'
+            and si.status = 'ACTIVE'
         ) t
-	    ORDER BY createdAt DESC, adjustmentId DESC
-	    LIMIT #{size} OFFSET #{offset}
+	    order by createdat desc, adjustmentid desc
+	    limit #{size} offset #{offset}
 	</select>
 
 	<select id="getAdjustStockAndSalesListCount" parameterType="map" resultType="int">
-	    SELECT COUNT(*)
-	    FROM (
-	        SELECT adjustmentId FROM STOCKADJUSTMENT sa WHERE sa.productId = #{productId}
+	    select count(*)
+	    from (
+	        select adjustmentid from stockadjustment sa where sa.productid = #{productId}
 			<if test="startDate != null and startDate != ''">
-				AND sa.createdAt >= STR_TO_DATE(#{startDate}, '%Y-%m-%d')
+				and sa.createdat >= str_to_date(#{startDate}, '%Y-%m-%d')
 			</if>
 			<if test="endDate != null and endDate != ''">
-				AND sa.createdAt &lt;= STR_TO_DATE(#{endDate}, '%Y-%m-%d') + 0.99999
+				and sa.createdat &lt;= str_to_date(#{endDate}, '%Y-%m-%d') + 0.99999
 			</if>
-	        UNION ALL
-	        SELECT itemSalesId FROM SALES_ITEM si WHERE si.productId = #{productId}
+	        union all
+	        select itemsalesid from sales_item si where si.productid = #{productId}
 			<if test="startDate != null and startDate != ''">
-				AND si.createdAt >= STR_TO_DATE(#{startDate}, '%Y-%m-%d')
+				and si.createdat >= str_to_date(#{startDate}, '%Y-%m-%d')
 			</if>
 			<if test="endDate != null and endDate != ''">
-				AND si.createdAt &lt;= STR_TO_DATE(#{endDate}, '%Y-%m-%d') + 0.99999
+				and si.createdat &lt;= str_to_date(#{endDate}, '%Y-%m-%d') + 0.99999
 			</if>
-            AND si.status = 'ACTIVE'
-	    ) AS t
+            and si.status = 'ACTIVE'
+	    ) as t
 	</select>
 
 	<select id="getCurrentStockListPaged" parameterType="map" resultType="CurrentStockDto">
-	      SELECT
-	          p.productId            AS productId,
-	          p.name                 AS productName,
-	          IFNULL(pi.total_in,    0) AS totalInbound,
-	          IFNULL(sa.total_out,   0) AS totalOutbound,
-	          IFNULL(si.total_sales, 0) AS totalSales,
-	          IFNULL(pi.total_in,0) - IFNULL(sa.total_out,0) - IFNULL(si.total_sales,0) AS currentStock
-	      FROM PRODUCT p
-	      LEFT JOIN (
-	          SELECT productId, SUM(quantity) AS total_in
-	          FROM PURCHASE
-	          GROUP BY productId
-	      ) pi ON pi.productId = p.productId
-	      LEFT JOIN (
-	          SELECT productId, SUM(quantity) AS total_out
-	          FROM STOCKADJUSTMENT
-	          GROUP BY productId
-	      ) sa ON sa.productId = p.productId
-	      LEFT JOIN (
-	          SELECT productId, SUM(quantity) AS total_sales
-	          FROM SALES_ITEM
-              WHERE status = 'ACTIVE'
-	          GROUP BY productId
-	      ) si ON si.productId = p.productId
+	      select
+	          p.productid            as productid,
+	          p.name                 as productname,
+	          ifnull(pi.total_in,    0) as totalinbound,
+	          ifnull(sa.total_out,   0) as totaloutbound,
+	          ifnull(si.total_sales, 0) as totalsales,
+	          ifnull(pi.total_in,0) - ifnull(sa.total_out,0) - ifnull(si.total_sales,0) as currentstock
+	      from product p
+	      left join (
+	          select productid, sum(quantity) as total_in
+	          from purchase
+	          group by productid
+	      ) pi on pi.productid = p.productid
+	      left join (
+	          select productid, sum(quantity) as total_out
+	          from stockadjustment
+	          group by productid
+	      ) sa on sa.productid = p.productid
+	      left join (
+	          select productid, sum(quantity) as total_sales
+	          from sales_item
+              where status = 'ACTIVE'
+	          group by productid
+	      ) si on si.productid = p.productid
 	      <where>
 	          <if test="keyword != null and keyword != ''">
-	              (LOWER(p.name) LIKE CONCAT('%', LOWER(#{keyword}), '%')
-	               OR LOWER(p.codeBId) LIKE CONCAT('%', LOWER(#{keyword}), '%'))
+	              (lower(p.name) like concat('%', lower(#{keyword}), '%')
+	               or lower(p.codebid) like concat('%', lower(#{keyword}), '%'))
 	          </if>
 	      </where>
-		  ORDER BY productName ASC
-		  LIMIT #{size} OFFSET #{offset}
+		  order by productname asc
+		  limit #{size} offset #{offset}
 	</select>
 	
 	<insert id="insertPurchase" parameterType="PurchaseDto" useGeneratedKeys="true" keyProperty="purchaseId">
-      INSERT INTO Purchase (
-          productId,
-          codeBId,
-          createdAt,
+      insert into purchase (
+          productid,
+          codebid,
+          createdat,
           quantity,
           notes
-      ) VALUES (
+      ) values (
           #{productId},
           #{codeBId},
-          COALESCE(#{createdAt}, CURRENT_TIMESTAMP),
+          coalesce(#{createdAt}, current_timestamp),
           #{quantity},
           #{notes, jdbcType=VARCHAR}
       )
@@ -166,16 +166,16 @@
 
 	
 	<insert id="insertStockAdjustment" parameterType="StockAdjustmentDto" useGeneratedKeys="true" keyProperty="adjustmentId">
-      INSERT INTO StockAdjustment (
-          productId,
-          codeBId,
-          createdAt,
+      insert into stockadjustment (
+          productid,
+          codebid,
+          createdat,
           quantity,
           notes
-      ) VALUES (
+      ) values (
           #{productId},
           #{codeBId},
-          COALESCE(#{createdAt}, CURRENT_TIMESTAMP),
+          coalesce(#{createdAt}, current_timestamp),
           #{quantity},
           #{notes}
       )

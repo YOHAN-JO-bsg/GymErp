@@ -8,93 +8,93 @@
 
   <!-- 목록: POSTWRITER가 문자여도 안전하게 조인 (ORA-01722 회피) -->
   <select id="selectAll" resultType="PostDto">
-    SELECT
-      p.POSTID        AS postId,
-      p.POSTTITLE     AS postTitle,
-      p.POSTCONTENT   AS postContent,
-      p.POSTWRITER    AS postWriter,
-      p.POSTPINNED    AS postPinned,
-      p.POSTVIEWCNT   AS postViewCnt,
-      p.POSTCREATEDAT AS postCreatedAt,
-      p.POSTUPDATEDAT AS postUpdatedAt,
-      e.EMPNAME       AS writerName
-    FROM (
-      SELECT
-        P.*,
-        CASE WHEN REGEXP_LIKE(P.POSTWRITER, '^[0-9]+$')
-             THEN TO_NUMBER(P.POSTWRITER)
-        END AS POSTWRITER_NUM
-      FROM POST P
+    select
+      p.postid        as postid,
+      p.posttitle     as posttitle,
+      p.postcontent   as postcontent,
+      p.postwriter    as postwriter,
+      p.postpinned    as postpinned,
+      p.postviewcnt   as postviewcnt,
+      p.postcreatedat as postcreatedat,
+      p.postupdatedat as postupdatedat,
+      e.empname       as writername
+    from (
+      select
+        p.*,
+        case when p.postwriter regexp '^[0-9]+$'
+             then cast(p.postwriter as unsigned)
+        end as postwriter_num
+      from post p
     ) p
-    LEFT JOIN EMPLOYEE e
-      ON e.EMPNUM = p.POSTWRITER_NUM
-    ORDER BY p.POSTPINNED DESC, p.POSTID DESC
+    left join employee e
+      on e.empnum = p.postwriter_num
+    order by p.postpinned desc, p.postid desc
   </select>
 
   <!-- 상세: id = get (지금 오류난 그 이름) -->
   <select id="get" parameterType="int" resultType="PostDto">
-    SELECT
-      p.POSTID        AS postId,
-      p.POSTTITLE     AS postTitle,
-      p.POSTCONTENT   AS postContent,
-      p.POSTWRITER    AS postWriter,
-      p.POSTPINNED    AS postPinned,
-      p.POSTVIEWCNT   AS postViewCnt,
-      p.POSTCREATEDAT AS postCreatedAt,
-      p.POSTUPDATEDAT AS postUpdatedAt,
-      e.EMPNAME       AS writerName
-    FROM (
-      SELECT
-        P.*,
-        CASE WHEN REGEXP_LIKE(P.POSTWRITER, '^[0-9]+$')
-             THEN TO_NUMBER(P.POSTWRITER)
-        END AS POSTWRITER_NUM
-      FROM POST P
+    select
+      p.postid        as postid,
+      p.posttitle     as posttitle,
+      p.postcontent   as postcontent,
+      p.postwriter    as postwriter,
+      p.postpinned    as postpinned,
+      p.postviewcnt   as postviewcnt,
+      p.postcreatedat as postcreatedat,
+      p.postupdatedat as postupdatedat,
+      e.empname       as writername
+    from (
+      select
+        p.*,
+        case when p.postwriter regexp '^[0-9]+$'
+             then cast(p.postwriter as unsigned)
+        end as postwriter_num
+      from post p
     ) p
-    LEFT JOIN EMPLOYEE e
-      ON e.EMPNUM = p.POSTWRITER_NUM
-    WHERE p.POSTID = #{postId}
+    left join employee e
+      on e.empnum = p.postwriter_num
+    where p.postid = #{postId}
   </select>
 
   <!-- 조회수 +1 -->
   <update id="incView" parameterType="int">
-  		UPDATE POST
-  		SET POSTVIEWCNT = POSTVIEWCNT + 1
-  		WHERE POSTID = #{postId}
+  		update post
+  		set postviewcnt = postviewcnt + 1
+  		where postid = #{postId}
   </update>
 
   <!-- 등록: Oracle 시퀀스 사용 -->
   <insert id="insert" parameterType="PostDto" useGeneratedKeys="true" keyProperty="postId">
-    INSERT INTO POST (
-      POSTTITLE, POSTCONTENT, POSTWRITER, POSTPINNED,
-      POSTVIEWCNT, POSTCREATEDAT, POSTUPDATEDAT
-    ) VALUES (
+    insert into post (
+      posttitle, postcontent, postwriter, postpinned,
+      postviewcnt, postcreatedat, postupdatedat
+    ) values (
       #{postTitle},
       #{postContent},
       #{postWriter},       <!-- 문자열로 저장해도 OK (사번 숫자면 "101" 형태) -->
       #{postPinned},
       0,
-      SYSTIMESTAMP,
-      SYSTIMESTAMP
+      current_timestamp,
+      current_timestamp
     )
   </insert>
 
   <!-- 수정 -->
   <update id="update" parameterType="PostDto">
-    UPDATE POST
-    SET
-      POSTTITLE     = #{postTitle},
-      POSTCONTENT   = #{postContent},
-      POSTWRITER    = #{postWriter},
-      POSTPINNED    = #{postPinned},
-      POSTUPDATEDAT = SYSTIMESTAMP
-    WHERE POSTID = #{postId}
+    update post
+    set
+      posttitle     = #{postTitle},
+      postcontent   = #{postContent},
+      postwriter    = #{postWriter},
+      postpinned    = #{postPinned},
+      postupdatedat = current_timestamp
+    where postid = #{postId}
   </update>
 
   <!-- 삭제 -->
   <delete id="delete" parameterType="int">
-    DELETE FROM POST
-    WHERE POSTID = #{postId}
+    delete from post
+    where postid = #{postId}
   </delete>
 
 </mapper>

@@ -10,123 +10,123 @@
 		<where>
 			<!-- 기간 -->
 			<if test="startDate != null and startDate != ''">
-				AND si.createdAt &gt;= STR_TO_DATE(#{startDate}, '%Y-%m-%d')
+				and si.createdat &gt;= str_to_date(#{startDate}, '%Y-%m-%d')
 			</if>
 			<if test="endDate != null and endDate != ''">
-				AND si.createdAt &lt;= STR_TO_DATE(CONCAT(#{endDate}, ' 23:59:59'), '%Y-%m-%d %H:%i:%s')
+				and si.createdat &lt;= str_to_date(concat(#{endDate}, ' 23:59:59'), '%Y-%m-%d %H:%i:%s')
 			</if>
 
 			<!-- 카테고리 -->
 			<if test="categoryIds != null and categoryIds.size() &gt; 0">
-				AND p.codeBId IN
+				and p.codebid in
 				<foreach collection="categoryIds" item="cid" open="("
 					separator="," close=")">
 					#{cid}
 				</foreach>
 			</if>
 			<if test="categoryName != null and categoryName != ''">
-				AND cb.name = #{categoryName}
+				and cb.name = #{categoryName}
 			</if>
 
 			<!-- 직원(사번/이메일) -->
 			<if test="empNum != null and empNum != '' and empNum != 0">
-				AND si.empNum = #{empNum}
+				and si.empnum = #{empNum}
 			</if>
 			<if test="empEmail != null and empEmail != ''">
-				AND e.empEmail LIKE CONCAT('%', #{empEmail}, '%')
+				and e.empemail like concat('%', #{empEmail}, '%')
 			</if>
 
 			<!-- 상품명 키워드 -->
 			<if test="productNameKeyword != null and productNameKeyword != ''">
-				AND p.name LIKE CONCAT('%', #{productNameKeyword}, '%')
+				and p.name like concat('%', #{productNameKeyword}, '%')
 			</if>
 
-			AND si.status = 'ACTIVE'
+			and si.status = 'ACTIVE'
 		</where>
 	</sql>
 
 	<!-- 카운트 -->
 	<select id="selectSalesItemCount" parameterType="map"
 		resultType="int">
-		SELECT COUNT(1)
-		FROM sales_item si
-		JOIN product p ON si.productId = p.productId
-		JOIN codeB cb ON p.codeBId = cb.codeBId
-		LEFT JOIN employee e ON si.empNum = e.empNum
+		select count(1)
+		from sales_item si
+		join product p on si.productid = p.productid
+		join codeb cb on p.codebid = cb.codebid
+		left join employee e on si.empnum = e.empnum
 		<include refid="baseWhereProduct" />
 	</select>
 
 	<!-- 목록 -->
 	<select id="selectAllSalesItems" parameterType="map"
 		resultType="com.example.gymerp.dto.SalesItemDto">
-		SELECT
-		si.itemSalesId,
-		si.productId,
-		p.name AS productName,
-		cb.name AS categoryName,
-		si.productType,
-		si.empNum,
-		e.empName AS empName,      <!-- ✅ 판매자 이름으로 변경 -->
+		select
+		si.itemsalesid,
+		si.productid,
+		p.name as productname,
+		cb.name as categoryname,
+		si.producttype,
+		si.empnum,
+		e.empname as empname,      <!-- ✅ 판매자 이름으로 변경 -->
 		si.quantity,
-		si.unitPrice,
-		si.totalAmount,
+		si.unitprice,
+		si.totalamount,
 		si.status,
-		si.createdAt,
-		si.updatedAt
-		FROM sales_item si
-		JOIN product p ON si.productId = p.productId
-		JOIN codeB cb ON p.codeBId = cb.codeBId
-		LEFT JOIN employee e ON si.empNum = e.empNum
+		si.createdat,
+		si.updatedat
+		from sales_item si
+		join product p on si.productid = p.productid
+		join codeb cb on p.codebid = cb.codebid
+		left join employee e on si.empnum = e.empnum
 		<include refid="baseWhereProduct" />
-		ORDER BY si.createdAt DESC, si.itemSalesId DESC
-		OFFSET #{startRow}-1 LIMIT (#{endRow}-#{startRow}+1)
+		order by si.createdat desc, si.itemsalesid desc
+		limit (#{endRow}-#{startRow}+1) offset #{startRow}-1
 	</select>
 
 	<!-- 단건 상세 -->
 	<select id="selectSalesItemById" parameterType="long"
 		resultType="com.example.gymerp.dto.SalesItemDto">
-		SELECT
-		si.itemSalesId,
-		si.productId,
-		p.name AS productName,
-		cb.name AS categoryName,
-		si.productType,
-		si.empNum,
-		e.empName AS empName,        <!-- ✅ 판매자 이름으로 변경 -->
+		select
+		si.itemsalesid,
+		si.productid,
+		p.name as productname,
+		cb.name as categoryname,
+		si.producttype,
+		si.empnum,
+		e.empname as empname,        <!-- ✅ 판매자 이름으로 변경 -->
 		si.quantity,
-		si.unitPrice,
-		si.totalAmount,
+		si.unitprice,
+		si.totalamount,
 		si.status,
-		si.createdAt,
-		si.updatedAt
-		FROM sales_item si
-		JOIN product p ON si.productId = p.productId
-		JOIN codeB cb ON p.codeBId = cb.codeBId
-		LEFT JOIN employee e ON si.empNum = e.empNum
-		WHERE si.itemSalesId = #{value}
+		si.createdat,
+		si.updatedat
+		from sales_item si
+		join product p on si.productid = p.productid
+		join codeb cb on p.codebid = cb.codebid
+		left join employee e on si.empnum = e.empnum
+		where si.itemsalesid = #{value}
 	</select>
 
 	<!-- 조정용 조회 -->
 	<select id="selectSalesItemForAdjustment" parameterType="long"
 		resultType="map">
-		SELECT
-		si.productId,
-		si.quantity AS oldQuantity,
-		p.codeBId AS codeBId,
+		select
+		si.productid,
+		si.quantity as oldquantity,
+		p.codebid as codebid,
 		si.status
-		FROM sales_item si
-		JOIN product p ON si.productId = p.productId
-		WHERE si.itemSalesId = #{value}
+		from sales_item si
+		join product p on si.productid = p.productid
+		where si.itemsalesid = #{value}
 	</select>
 
 	<!-- 등록 -->
 	<insert id="insertSalesItem"
 		parameterType="com.example.gymerp.dto.SalesItemDto" useGeneratedKeys="true" keyProperty="itemSalesId">
-		INSERT INTO sales_item (
-		productId, productName,
-		empNum, quantity, unitPrice, totalAmount,
-		productType, status, createdAt, updatedAt
-		) VALUES (
+		insert into sales_item (
+		productid, productname,
+		empnum, quantity, unitprice, totalamount,
+		producttype, status, createdat, updatedat
+		) values (
 		#{productId}, #{productName},
 		#{empNum}, #{quantity}, #{unitPrice, jdbcType=DECIMAL}, #{totalAmount,
 		jdbcType=DECIMAL},
@@ -137,46 +137,46 @@
 	<!-- 수정 -->
 	<update id="updateSalesItem"
 		parameterType="com.example.gymerp.dto.SalesItemDto">
-		UPDATE sales_item
+		update sales_item
 		<set>
 			<if test="productId != null and productId != 0">
-				productId = #{productId},
+				productid = #{productId},
 			</if>
 			<if test="productName != null">
-				productName = #{productName},
+				productname = #{productName},
 			</if>
 			<if test="empNum != null and empNum != 0">
-				empNum = #{empNum},
+				empnum = #{empNum},
 			</if>
 			<!-- quantity는 0 허용 -->
 			<if test="quantity != null">
 				quantity = #{quantity},
 			</if>
 			<if test="unitPrice != null">
-				unitPrice = #{unitPrice, jdbcType=DECIMAL},
+				unitprice = #{unitPrice, jdbcType=DECIMAL},
 			</if>
 			<if test="totalAmount != null">
-				totalAmount = #{totalAmount, jdbcType=DECIMAL},
+				totalamount = #{totalAmount, jdbcType=DECIMAL},
 			</if>
 			<if test="productType != null">
-				productType = #{productType},
+				producttype = #{productType},
 			</if>
 			<if test="status != null">
 				status = #{status},
 			</if>
-			updatedAt = NOW()
+			updatedat = now()
 		</set>
-		WHERE itemSalesId = #{itemSalesId}
+		where itemsalesid = #{itemSalesId}
 	</update>
 
 	<!-- 환원용 구매 등록 -->
 	<insert id="insertPurchaseForRefund" parameterType="map" useGeneratedKeys="true" keyProperty="purchaseId">
-		INSERT INTO purchase (
-		productId, codeBId, createdAt, quantity, notes
-		) VALUES (
+		insert into purchase (
+		productid, codebid, createdat, quantity, notes
+		) values (
 		#{productId},
 		#{codeBId},
-		NOW(),
+		now(),
 		#{quantity},
 		'판매 취소로 인한 재고 환원'
 		)
@@ -184,24 +184,24 @@
 
 	<!-- 소프트 삭제 -->
 	<update id="deleteSalesItem" parameterType="long">
-		UPDATE sales_item
-		SET status = 'DELETED', updatedAt = NOW()
-		WHERE itemSalesId = #{value}
+		update sales_item
+		set status = 'DELETED', updatedat = now()
+		where itemsalesid = #{value}
 	</update>
 
 	<!-- 분석 -->
 	<select id="selectItemSalesAnalytics" parameterType="map"
 		resultType="map">
-		SELECT
-		si.productId,
-		p.name AS productName,
-		SUM(si.quantity) AS totalQuantity,
-		SUM(si.totalAmount) AS totalSalesAmount
-		FROM sales_item si
-		JOIN product p ON si.productId = p.productId
+		select
+		si.productid,
+		p.name as productname,
+		sum(si.quantity) as totalquantity,
+		sum(si.totalamount) as totalsalesamount
+		from sales_item si
+		join product p on si.productid = p.productid
 		<include refid="baseWhereProduct" />
-		GROUP BY si.productId, p.name
-		ORDER BY totalSalesAmount DESC
+		group by si.productid, p.name
+		order by totalsalesamount desc
 	</select>
 
 </mapper>

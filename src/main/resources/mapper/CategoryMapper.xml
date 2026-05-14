@@ -2,31 +2,31 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="category">
 	<select id="getCodeList" parameterType="codeDto" resultType="codeDto">
-		SELECT
-			codeBId, 
-	        codeAId, 
-	        "NAME" AS codeBName
-		FROM codeB
-		WHERE codeAId=#{codeAId}
+		select
+			codebid, 
+	        codeaid, 
+	        "name" as codebname
+		from codeb
+		where codeaid=#{codeAId}
 	</select>
 	
 	<insert id="insert" parameterType="codeDto">
-		INSERT INTO codeB
-		(codeBId, codeAId, name)
-		VALUES(#{codeBId}, #{codeAId}, #{codeBName})
+		insert into codeb
+		(codebid, codeaid, name)
+		values(#{codeBId}, #{codeAId}, #{codeBName})
 	</insert>	
 	
 	<!-- 일정 코드 목록  -->
 	<select id="getScheduleCodes" parameterType="CodeDto" resultType="CodeDto">
-	  SELECT 
-	    a.codeaId,
-	    b.codebId,
-	    a.name AS codeAName,
-	    b.name AS codeBName
-	  FROM codeA a
-	  JOIN codeB b ON a.codeaId = b.codeaId
-	  WHERE a.codeaId = 'SCHEDULE_TYPE'
-	  ORDER BY b.codebId
+	  select 
+	    a.codeaid,
+	    b.codebid,
+	    a.name as codeaname,
+	    b.name as codebname
+	  from codea a
+	  join codeb b on a.codeaid = b.codeaid
+	  where a.codeaid = 'SCHEDULE_TYPE'
+	  order by b.codebid
 	</select>
 	
 </mapper>

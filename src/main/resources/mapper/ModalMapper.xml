@@ -7,31 +7,31 @@
 		<select id="getServiceModalList"
 		        parameterType="com.example.gymerp.dto.ServiceDto"
 		        resultType="com.example.gymerp.dto.ServiceDto">
-		  SELECT
-		    s.SERVICEID    AS serviceId,
-		    s.CODEBID      AS codeBId,
-		    s.NAME         AS name,
-		    s.PRICE        AS price,
-		    s.ISACTIVE     AS isActive,
-		    s.SERVICEVALUE AS serviceValue,
-		    s.CREATEDAT    AS createdAt,
-		    s.UPDATEDAT    AS updatedAt,
-		    s.NOTE         AS note
-		  FROM SERVICE s
-		  WHERE s.ISACTIVE = 1
+		  select
+		    s.serviceid    as serviceid,
+		    s.codebid      as codebid,
+		    s.name         as name,
+		    s.price        as price,
+		    s.isactive     as isactive,
+		    s.servicevalue as servicevalue,
+		    s.createdat    as createdat,
+		    s.updatedat    as updatedat,
+		    s.note         as note
+		  from service s
+		  where s.isactive = 1
 		  <if test="keyword != null and keyword != ''">
-		    AND LOWER(s.NAME) LIKE CONCAT('%', LOWER(#{keyword}), '%')
+		    and lower(s.name) like concat('%', lower(#{keyword}), '%')
 		  </if>
 		  <if test="categoryCodes != null and categoryCodes.size() > 0">
-		    AND s.CODEBID IN
+		    and s.codebid in
 		    <foreach collection="categoryCodes" item="code" open="(" separator="," close=")">
 		      #{code}
 		    </foreach>
 		  </if>
-		  ORDER BY
-		    CASE WHEN s.CODEBID LIKE '%PT%' THEN 0 ELSE 1 END,
-		    s.NAME DESC
-		  OFFSET #{startRowNum} LIMIT (#{endRowNum} - #{startRowNum} + 1)
+		  order by
+		    case when s.codebid like '%PT%' then 0 else 1 end,
+		    s.name desc
+		  limit (#{endRowNum} - #{startRowNum} + 1) offset #{startRowNum}
 		</select>
 
 <!-- ========================================================= [서비스 상품 선택 모달 끝] ========================================================= -->	
@@ -39,16 +39,16 @@
 
 	<!-- ========================================================= [서비스 상품 총 개수 조회] ========================================================= -->
 	<select id="getServiceModalCount" resultType="int">
-	    SELECT COUNT(*)
-	    FROM SERVICE s
-	    WHERE s.ISACTIVE = 1
+	    select count(*)
+	    from service s
+	    where s.isactive = 1
 	
 	    <if test="keyword != null and keyword != ''">
-	        AND LOWER(s.NAME) LIKE CONCAT('%', LOWER(#{keyword}), '%')
+	        and lower(s.name) like concat('%', lower(#{keyword}), '%')
 	    </if>
 	
 	    <if test="categoryCodes != null and categoryCodes.size() > 0">
-	        AND s.CODEBID IN
+	        and s.codebid in
 	        <foreach collection="categoryCodes" item="code" open="(" separator="," close=")">
 	            #{code}
 	        </foreach>
@@ -63,27 +63,27 @@
 
 	<select id="getProductModalList" parameterType="map"
 	        resultType="com.example.gymerp.dto.ProductDto">
-	  SELECT
-	    p.productId,
-	    p.codeBId,
+	  select
+	    p.productid,
+	    p.codebid,
 	    p.name,
 	    p.price,
-	    p.isActive
-	  FROM PRODUCT p
-	  WHERE p.isActive = 1
+	    p.isactive
+	  from product p
+	  where p.isactive = 1
 	    <if test="keyword != null and keyword != ''">
-	      AND UPPER(p.name) LIKE CONCAT('%', UPPER(#{keyword}), '%')
+	      and upper(p.name) like concat('%', upper(#{keyword}), '%')
 	    </if>
-	  ORDER BY p.name DESC
-	  OFFSET #{startRow} LIMIT (#{endRow} - #{startRow} + 1)
+	  order by p.name desc
+	  limit (#{endRow} - #{startRow} + 1) offset #{startRow}
 	</select>
 	
 	<select id="getProductModalCount" parameterType="map" resultType="int">
-	  SELECT COUNT(1)
-	  FROM PRODUCT p
-	  WHERE p.isActive = 1
+	  select count(1)
+	  from product p
+	  where p.isactive = 1
 	    <if test="keyword != null and keyword != ''">
-	      AND UPPER(p.name) LIKE CONCAT('%', UPPER(#{keyword}), '%')
+	      and upper(p.name) like concat('%', upper(#{keyword}), '%')
 	    </if>
 	</select>
 
@@ -98,28 +98,28 @@
     
 	<select id="getEmployeeModalList" parameterType="map"
 	        resultType="com.example.gymerp.dto.EmpDto">
-	  SELECT
-	    e.EMPNUM   AS empNum,
-	    e.EMPNAME  AS empName,
-	    e.EMPEMAIL AS empEmail
-	  FROM EMPLOYEE e
-	  WHERE e.FIREDATE IS NULL
+	  select
+	    e.empnum   as empnum,
+	    e.empname  as empname,
+	    e.empemail as empemail
+	  from employee e
+	  where e.firedate is null
 	    <if test="keyword != null and keyword != ''">
-	      AND ( UPPER(e.EMPNAME)  LIKE CONCAT('%', UPPER(#{keyword}), '%')
-	         OR UPPER(e.EMPEMAIL) LIKE CONCAT('%', UPPER(#{keyword}), '%') )
+	      and ( upper(e.empname)  like concat('%', upper(#{keyword}), '%')
+	         or upper(e.empemail) like concat('%', upper(#{keyword}), '%') )
 	    </if>
-	  ORDER BY e.EMPNAME ASC
-	  OFFSET #{startRow} LIMIT #{endRow} - #{startRow} + 1
+	  order by e.empname asc
+	  limit #{endRow} - #{startRow} + 1 offset #{startRow}
 	</select>
 	
 	<!-- 전체 개수 -->
 	<select id="getEmployeeModalCount" parameterType="map" resultType="int">
-	  SELECT COUNT(1)
-	  FROM EMPLOYEE e
-	  WHERE e.FIREDATE IS NULL
+	  select count(1)
+	  from employee e
+	  where e.firedate is null
 	    <if test="keyword != null and keyword != ''">
-	      AND ( UPPER(e.EMPNAME)  LIKE CONCAT('%', UPPER(#{keyword}), '%')
-	         OR UPPER(e.EMPEMAIL) LIKE CONCAT('%', UPPER(#{keyword}), '%') )
+	      and ( upper(e.empname)  like concat('%', upper(#{keyword}), '%')
+	         or upper(e.empemail) like concat('%', upper(#{keyword}), '%') )
 	    </if>
 	</select>
 	
