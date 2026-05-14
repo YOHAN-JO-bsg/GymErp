@@ -9,28 +9,28 @@
       /* 활성 회원: ENDDATE 안 지난 바우처 보유자(필요 시 STARTDATE 조건 추가) */
       (SELECT COUNT(DISTINCT v.MEMNUM)
          FROM VOUCHER_LOG v
-        WHERE v.ENDDATE >= TRUNC(SYSDATE)
+        WHERE v.ENDDATE >= TRUNC(NOW())
       ) AS activeMembers,
 
       /* 이번 달 신규 가입: MEMBER.CREATEDAT 기준 */
       (SELECT COUNT(*)
          FROM MEMBER m
-        WHERE m.memCreated >= TRUNC(SYSDATE,'MM')
-          AND m.memCreated &lt; ADD_MONTHS(TRUNC(SYSDATE,'MM'),1)
+        WHERE m.memCreated >= TRUNC(NOW(),'MM')
+          AND m.memCreated &lt; ADD_MONTHS(TRUNC(NOW(),'MM'),1)
       ) AS monthNewMembers,
 
       /* 월 누적 매출: 서비스(ACTUALAMOUNT) + 아이템(TOTALAMOUNT) */
       (
-        NVL( (SELECT SUM(s.ACTUALAMOUNT)
+        IFNULL( (SELECT SUM(s.ACTUALAMOUNT)
                 FROM SALES_SERVICE s
-               WHERE s.CREATEDAT >= TRUNC(SYSDATE,'MM')
-                 AND s.CREATEDAT &lt; ADD_MONTHS(TRUNC(SYSDATE,'MM'),1)
+               WHERE s.CREATEDAT >= TRUNC(NOW(),'MM')
+                 AND s.CREATEDAT &lt; ADD_MONTHS(TRUNC(NOW(),'MM'),1)
             ), 0)
         +
-        NVL( (SELECT SUM(i.TOTALAMOUNT)
+        IFNULL( (SELECT SUM(i.TOTALAMOUNT)
                 FROM SALES_ITEM i
-               WHERE i.CREATEDAT >= TRUNC(SYSDATE,'MM')
-                 AND i.CREATEDAT &lt; ADD_MONTHS(TRUNC(SYSDATE,'MM'),1)
+               WHERE i.CREATEDAT >= TRUNC(NOW(),'MM')
+                 AND i.CREATEDAT &lt; ADD_MONTHS(TRUNC(NOW(),'MM'),1)
             ), 0)
       ) AS mtdRevenue
     FROM dual

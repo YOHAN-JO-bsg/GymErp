@@ -12,57 +12,49 @@
 			</if>
 	        
 	        <if test="keyword != null and keyword != ''">
-				AND sv.name LIKE '%' || #{keyword} || '%'
+				AND sv.name LIKE CONCAT('%', #{keyword}, '%')
 	        </if>
 		</where>
 	</sql>
 
 	<select id="selectPage" parameterType="serviceDto" resultType="serviceDto">
-		SELECT *
-		FROM
-			(SELECT result1.*, ROWNUM AS rnum
-			FROM
-				(SELECT 
-					sv.serviceId, 
-					sv.name, 
-					sv.price, 
-					sv.isActive, 
-					sv.codeBId, 
-					sv.serviceValue, 
-					cb.name AS codeBName
-				FROM service sv
-				LEFT JOIN codeB cb ON sv.codeBId = cb.codeBId
-				<include refid="search"/>
-				<if test="sortBy != null and sortBy != ''">
-		            ORDER BY
-		            <choose>
-		                <when test="sortBy == 'codeBName'"> cb.name </when>
-		                <when test="sortBy == 'name'"> sv.name </when>
-		                <when test="sortBy == 'price'"> sv.price </when>
-		                <otherwise> sv.serviceId </otherwise>
-		            </choose>
-		            <choose>
-		                <when test="direction == 'DESC'"> DESC </when>
-		                <otherwise> ASC </otherwise>
-		            </choose>
-		        </if>
-				) result1)
-		WHERE rnum BETWEEN #{startRowNum} AND #{endRowNum}
+		SELECT 
+			sv.serviceId, 
+			sv.name, 
+			sv.price, 
+			sv.isActive, 
+			sv.codeBId, 
+			sv.serviceValue, 
+			cb.name AS codeBName
+		FROM service sv
+		LEFT JOIN codeB cb ON sv.codeBId = cb.codeBId
+		<include refid="search"/>
+		<if test="sortBy != null and sortBy != ''">
+            ORDER BY
+            <choose>
+                <when test="sortBy == 'codeBName'"> cb.name </when>
+                <when test="sortBy == 'name'"> sv.name </when>
+                <when test="sortBy == 'price'"> sv.price </when>
+                <otherwise> sv.serviceId </otherwise>
+            </choose>
+            <choose>
+                <when test="direction == 'DESC'"> DESC </when>
+                <otherwise> ASC </otherwise>
+            </choose>
+        </if>
+		OFFSET #{startRowNum} LIMIT (#{endRowNum} - #{startRowNum} + 1)
 	</select>
 	
 	<select id="getCount" parameterType="serviceDto" resultType="int">
-		SELECT NVL(MAX(ROWNUM), 0) AS count
+		SELECT COUNT(*) AS count
 		FROM service sv
 		<include refid="search"/>
 	</select>
 	
-	<insert id="insert" parameterType="serviceDto">
-		<selectKey keyProperty="serviceId" resultType="int" order="BEFORE">
-			SELECT service_seq.NEXTVAL FROM DUAL
-		</selectKey>
+	<insert id="insert" parameterType="serviceDto" useGeneratedKeys="true" keyProperty="serviceId">
 		INSERT INTO service
-		(serviceId, codeBId, name, price, isActive, createdAt, serviceValue)
-		VALUES(#{serviceId}, #{codeBId}, #{name}, #{price}, #{isActive}, #{createdAt}, #{serviceValue})
+		(codeBId, name, price, isActive, createdAt, serviceValue)
+		VALUES(#{codeBId}, #{name}, #{price}, #{isActive}, #{createdAt}, #{serviceValue})
 	</insert>
 	
 	<update id="update" parameterType="serviceDto">

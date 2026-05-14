@@ -24,7 +24,7 @@
 		WHERE TRUNC(a.attDate) = TRUNC(#{date})
 		ORDER BY
 		e.empName ASC,
-		NVL(CAST(a.checkIn AS DATE), a.attDate) ASC,
+		IFNULL(CAST(a.checkIn AS DATE), a.attDate) ASC,
 		a.attNum ASC
 	</select>
 
@@ -54,36 +54,32 @@
 
 	 <!-- 출근(등록) : DB 현재시각을 KST로 고정 -->
   <insert id="insertEmpAttendance"
-          parameterType="com.example.gymerp.dto.EmpAttendanceDto">
-    <selectKey keyProperty="attNum" resultType="int" order="BEFORE">
-      SELECT ATTENDANCE_SEQ.NEXTVAL FROM DUAL
-    </selectKey>
+          parameterType="com.example.gymerp.dto.EmpAttendanceDto" useGeneratedKeys="true" keyProperty="attNum">
     INSERT INTO attendance
-      (attNum, empNum, attDate, checkIn, checkOut, workHours, attState)
+      (empNum, attDate, checkIn, checkOut, workHours, attState)
     VALUES
       (
-        #{attNum},
         #{empNum},
         /* ✅ 날짜 칼럼은 KST 기준으로 TRUNC */
-        NVL(
+        IFNULL(
           #{attDate,jdbcType=DATE},
           TRUNC(CAST((SYSTIMESTAMP AT TIME ZONE 'Asia/Seoul') AS DATE))
         ),
         /* ✅ 체크인 타임스탬프도 KST 고정 */
-        NVL(
+        IFNULL(
           #{checkIn,jdbcType=TIMESTAMP},
           CAST((SYSTIMESTAMP AT TIME ZONE 'Asia/Seoul') AS TIMESTAMP)
         ),
         #{checkOut,jdbcType=TIMESTAMP},
-        NVL(#{workHours,jdbcType=NUMERIC}, 0),
-        NVL(#{attState,jdbcType=VARCHAR}, 'WORKING')
+        IFNULL(#{workHours,jdbcType=NUMERIC}, 0),
+        IFNULL(#{attState,jdbcType=VARCHAR}, 'WORKING')
       )
   </insert>
 
 	<!-- 퇴근(체크아웃) : 파라미터 없으면 KST 현재시각 사용, 근무시간 계산도 동일 기준 -->
   <update id="updateEmpAttendanceCheckOut" parameterType="map">
     UPDATE attendance
-       SET checkOut = NVL(
+       SET checkOut = IFNULL(
                          #{checkOut,jdbcType=TIMESTAMP},
                          CAST((SYSTIMESTAMP AT TIME ZONE 'Asia/Seoul') AS TIMESTAMP)  /* ✅ */
                        ),
@@ -94,7 +90,7 @@
                  FLOOR(
                    (
                      CAST(
-                       NVL(#{checkOut,jdbcType=TIMESTAMP},
+                       IFNULL(#{checkOut,jdbcType=TIMESTAMP},
                            CAST((SYSTIMESTAMP AT TIME ZONE 'Asia/Seoul') AS TIMESTAMP)
                        ) AS DATE
                      )

@@ -10,11 +10,10 @@
 		<where>
 			<!-- 기간 -->
 			<if test="startDate != null and startDate != ''">
-				AND si.createdAt &gt;= TO_DATE(#{startDate}, 'YYYY-MM-DD')
+				AND si.createdAt &gt;= STR_TO_DATE(#{startDate}, '%Y-%m-%d')
 			</if>
 			<if test="endDate != null and endDate != ''">
-				AND si.createdAt &lt;= TO_DATE(#{endDate} || ' 23:59:59', 'YYYY-MM-DD
-				HH24:MI:SS')
+				AND si.createdAt &lt;= STR_TO_DATE(CONCAT(#{endDate}, ' 23:59:59'), '%Y-%m-%d %H:%i:%s')
 			</if>
 
 			<!-- 카테고리 -->
@@ -34,12 +33,12 @@
 				AND si.empNum = #{empNum}
 			</if>
 			<if test="empEmail != null and empEmail != ''">
-				AND e.empEmail LIKE '%' || #{empEmail} || '%'
+				AND e.empEmail LIKE CONCAT('%', #{empEmail}, '%')
 			</if>
 
 			<!-- 상품명 키워드 -->
 			<if test="productNameKeyword != null and productNameKeyword != ''">
-				AND p.name LIKE '%' || #{productNameKeyword} || '%'
+				AND p.name LIKE CONCAT('%', #{productNameKeyword}, '%')
 			</if>
 
 			AND si.status = 'ACTIVE'
@@ -53,15 +52,13 @@
 		FROM sales_item si
 		JOIN product p ON si.productId = p.productId
 		JOIN codeB cb ON p.codeBId = cb.codeBId
-		JOIN employee e ON si.empNum = e.empNum
+		LEFT JOIN employee e ON si.empNum = e.empNum
 		<include refid="baseWhereProduct" />
 	</select>
 
 	<!-- 목록 -->
 	<select id="selectAllSalesItems" parameterType="map"
 		resultType="com.example.gymerp.dto.SalesItemDto">
-		SELECT *
-		FROM (
 		SELECT
 		si.itemSalesId,
 		si.productId,
@@ -75,15 +72,14 @@
 		si.totalAmount,
 		si.status,
 		si.createdAt,
-		si.updatedAt,
-		ROW_NUMBER() OVER (ORDER BY si.itemSalesId DESC) AS rn
+		si.updatedAt
 		FROM sales_item si
 		JOIN product p ON si.productId = p.productId
 		JOIN codeB cb ON p.codeBId = cb.codeBId
-		JOIN employee e ON si.empNum = e.empNum
+		LEFT JOIN employee e ON si.empNum = e.empNum
 		<include refid="baseWhereProduct" />
-		)
-		WHERE rn BETWEEN #{startRow} AND #{endRow}
+		ORDER BY si.createdAt DESC, si.itemSalesId DESC
+		OFFSET #{startRow}-1 LIMIT (#{endRow}-#{startRow}+1)
 	</select>
 
 	<!-- 단건 상세 -->
@@ -106,7 +102,7 @@
 		FROM sales_item si
 		JOIN product p ON si.productId = p.productId
 		JOIN codeB cb ON p.codeBId = cb.codeBId
-		JOIN employee e ON si.empNum = e.empNum
+		LEFT JOIN employee e ON si.empNum = e.empNum
 		WHERE si.itemSalesId = #{value}
 	</select>
 
@@ -125,17 +121,13 @@
 
 	<!-- 등록 -->
 	<insert id="insertSalesItem"
-		parameterType="com.example.gymerp.dto.SalesItemDto">
-		<selectKey keyProperty="itemSalesId" resultType="long"
-			order="BEFORE">
-			SELECT SALES_ITEM_SEQ.NEXTVAL FROM DUAL
-		</selectKey>
+		parameterType="com.example.gymerp.dto.SalesItemDto" useGeneratedKeys="true" keyProperty="itemSalesId">
 		INSERT INTO sales_item (
-		itemSalesId, productId, productName,
+		productId, productName,
 		empNum, quantity, unitPrice, totalAmount,
 		productType, status, createdAt, updatedAt
 		) VALUES (
-		#{itemSalesId}, #{productId}, #{productName},
+		#{productId}, #{productName},
 		#{empNum}, #{quantity}, #{unitPrice, jdbcType=DECIMAL}, #{totalAmount,
 		jdbcType=DECIMAL},
 		#{productType}, #{status}, #{createdAt}, #{updatedAt}
@@ -172,24 +164,19 @@
 			<if test="status != null">
 				status = #{status},
 			</if>
-			updatedAt = SYSDATE
+			updatedAt = NOW()
 		</set>
 		WHERE itemSalesId = #{itemSalesId}
 	</update>
 
 	<!-- 환원용 구매 등록 -->
-	<insert id="insertPurchaseForRefund" parameterType="map">
-		<selectKey keyProperty="purchaseId" resultType="long"
-			order="BEFORE">
-			SELECT PURCHASE_SEQ.NEXTVAL FROM DUAL
-		</selectKey>
+	<insert id="insertPurchaseForRefund" parameterType="map" useGeneratedKeys="true" keyProperty="purchaseId">
 		INSERT INTO purchase (
-		purchaseId, productId, codeBId, createdAt, quantity, notes
+		productId, codeBId, createdAt, quantity, notes
 		) VALUES (
-		#{purchaseId},
 		#{productId},
 		#{codeBId},
-		SYSDATE,
+		NOW(),
 		#{quantity},
 		'판매 취소로 인한 재고 환원'
 		)
@@ -198,7 +185,7 @@
 	<!-- 소프트 삭제 -->
 	<update id="deleteSalesItem" parameterType="long">
 		UPDATE sales_item
-		SET status = 'DELETED', updatedAt = SYSDATE
+		SET status = 'DELETED', updatedAt = NOW()
 		WHERE itemSalesId = #{value}
 	</update>
 

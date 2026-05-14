@@ -122,3 +122,6 @@ Temporary Items
 .env.*
 *.log
 .codex/
+
+# --- Spring sensitive properties ---
+src/main/resources/application.properties

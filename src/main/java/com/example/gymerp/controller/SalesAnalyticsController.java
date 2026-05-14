@@ -104,7 +104,7 @@ public class SalesAnalyticsController {
 
     // =========================================================
     // [회원권 유효 회원 통계]
-    // - 전체 회원권 내역 보유자 중 endDate >= SYSDATE
+    // - 전체 회원권 내역 보유자 중 endDate >= NOW()
     // - 결과: valid_count, expired_count
     // - 그래프: 원형(PieChart)
     // =========================================================

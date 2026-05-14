@@ -78,14 +78,10 @@
   </select>
 
   <!-- ====================== 일정 등록 ====================== -->
-  <insert id="insert" parameterType="com.example.gymerp.dto.ScheduleDto">
-    <selectKey keyProperty="shNum" resultType="long" order="BEFORE">
-      SELECT SCHEDULE_SEQ.NEXTVAL FROM DUAL
-    </selectKey>
+  <insert id="insert" parameterType="com.example.gymerp.dto.ScheduleDto" useGeneratedKeys="true" keyProperty="shNum">
     INSERT INTO SCHEDULE (
-      SHNUM, EMPNUM, CODEBID, STARTTIME, ENDTIME, MEMO
+      EMPNUM, CODEBID, STARTTIME, ENDTIME, MEMO
     ) VALUES (
-      #{shNum},
       #{empNum},
       #{codeBid, jdbcType=VARCHAR},
       #{startTime, jdbcType=TIMESTAMP},
@@ -134,14 +130,11 @@
 
   <!-- ===================== ⬇ 관리자 전용 검색(11g 페이징) ⬇ ===================== -->
   <select id="selectByFiltersForAdmin" parameterType="map" resultMap="ScheduleMap">
-    SELECT *
-    FROM (
       SELECT
         s.shNum, s.empNum, s.codeBid, s.startTime, s.endTime, s.memo, s.memNum,
         e.empName,
         cb.name AS codeBName,
-        m.memName,
-        ROW_NUMBER() OVER (ORDER BY s.startTime DESC) AS rn
+        m.memName
       FROM SCHEDULE s
 		  JOIN Employee e ON s.empNum = e.empNum
 		  LEFT JOIN CodeB cb ON s.codeBid = cb.codeBid
@@ -153,15 +146,14 @@
         <if test="keyword != null and keyword != ''">
           <if test="codeBid != null and codeBid != ''">AND</if>
           (
-            LOWER(e.empName)           LIKE '%' || LOWER(#{keyword}) || '%'
-            OR LOWER(NVL(m.memName,''))LIKE '%' || LOWER(#{keyword}) || '%'
-            OR LOWER(NVL(s.memo,''))   LIKE '%' || LOWER(#{keyword}) || '%'
+            LOWER(e.empName)           LIKE CONCAT('%', LOWER(#{keyword}), '%')
+            OR LOWER(IFNULL(m.memName,''))LIKE CONCAT('%', LOWER(#{keyword}), '%')
+            OR LOWER(IFNULL(s.memo,''))   LIKE CONCAT('%', LOWER(#{keyword}), '%')
           )
         </if>
       </where>
-    )
-    WHERE rn BETWEEN #{offset,javaType=int} + 1
-                AND #{offset,javaType=int} + #{limit,javaType=int}
+    ORDER BY s.startTime DESC
+    LIMIT #{limit} OFFSET #{offset}
   </select>
 
 
@@ -179,9 +171,9 @@
       <if test="keyword != null and keyword != ''">
         <if test="codeBid != null and codeBid != ''">AND</if>
         (
-          LOWER(e.empName)           LIKE '%' || LOWER(#{keyword}) || '%'
-          OR LOWER(NVL(m.memName,''))LIKE '%' || LOWER(#{keyword}) || '%'
-          OR LOWER(NVL(s.memo,''))   LIKE '%' || LOWER(#{keyword}) || '%'
+          LOWER(e.empName)           LIKE CONCAT('%', LOWER(#{keyword}), '%')
+          OR LOWER(IFNULL(m.memName,''))LIKE CONCAT('%', LOWER(#{keyword}), '%')
+          OR LOWER(IFNULL(s.memo,''))   LIKE CONCAT('%', LOWER(#{keyword}), '%')
         )
       </if>
     </where>
@@ -192,24 +184,20 @@
   <!-- ===================== ⬇ 회원권 유효 확인 ⬇ ===================== -->
   
 	<!-- 일정 시간이 정책에 따라 겹치지 않을 때만 INSERT -->
-	<insert id="insertIfNoOverlap" parameterType="com.example.gymerp.dto.ScheduleDto">
-	  <selectKey keyProperty="shNum" resultType="long" order="BEFORE">
-	    SELECT SCHEDULE_SEQ.NEXTVAL FROM DUAL
-	  </selectKey>
-	
+	<insert id="insertIfNoOverlap" parameterType="com.example.gymerp.dto.ScheduleDto" useGeneratedKeys="true" keyProperty="shNum">
 	  <![CDATA[
 	  INSERT INTO SCHEDULE (
-	    SHNUM, EMPNUM, CODEBID, STARTTIME, ENDTIME, MEMNUM, MEMO
+	    EMPNUM, CODEBID, STARTTIME, ENDTIME, MEMNUM, MEMO
 	  )
-	  SELECT
-	    #{shNum,      jdbcType=NUMERIC},
-	    #{empNum,     jdbcType=NUMERIC},
-	    #{codeBid,    jdbcType=VARCHAR},
-	    #{startTime,  jdbcType=TIMESTAMP},
-	    #{endTime,    jdbcType=TIMESTAMP},
-	    #{memNum,     jdbcType=NUMERIC},
-	    #{memo,       jdbcType=VARCHAR}
-	  FROM DUAL
+	  SELECT * FROM (
+	    SELECT
+	      #{empNum,     jdbcType=NUMERIC} AS empNum,
+	      #{codeBid,    jdbcType=VARCHAR} AS codeBid,
+	      #{startTime,  jdbcType=TIMESTAMP} AS startTime,
+	      #{endTime,    jdbcType=TIMESTAMP} AS endTime,
+	      #{memNum,     jdbcType=NUMERIC} AS memNum,
+	      #{memo,       jdbcType=VARCHAR} AS memo
+	  ) AS tmp
 	  WHERE NOT EXISTS (
 	    SELECT 1
 	    FROM SCHEDULE s

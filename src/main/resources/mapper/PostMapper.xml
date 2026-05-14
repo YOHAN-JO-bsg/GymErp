@@ -64,15 +64,11 @@
   </update>
 
   <!-- 등록: Oracle 시퀀스 사용 -->
-  <insert id="insert" parameterType="PostDto" useGeneratedKeys="false">
-    <selectKey keyProperty="postId" resultType="int" order="BEFORE">
-      SELECT POST_SEQ.NEXTVAL FROM DUAL
-    </selectKey>
+  <insert id="insert" parameterType="PostDto" useGeneratedKeys="true" keyProperty="postId">
     INSERT INTO POST (
-      POSTID, POSTTITLE, POSTCONTENT, POSTWRITER, POSTPINNED,
+      POSTTITLE, POSTCONTENT, POSTWRITER, POSTPINNED,
       POSTVIEWCNT, POSTCREATEDAT, POSTUPDATEDAT
     ) VALUES (
-      #{postId},
       #{postTitle},
       #{postContent},
       #{postWriter},       <!-- 문자열로 저장해도 OK (사번 숫자면 "101" 형태) -->

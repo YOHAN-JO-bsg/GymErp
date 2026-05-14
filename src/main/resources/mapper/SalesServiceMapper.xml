@@ -29,16 +29,12 @@
     =============================== -->
 
     <!-- 서비스 판매 등록 -->
-    <insert id="insertSalesService" parameterType="SalesService">
-        <selectKey keyProperty="serviceSalesId" resultType="long" order="BEFORE">
-            SELECT sales_service_seq.NEXTVAL FROM DUAL
-        </selectKey>
+    <insert id="insertSalesService" parameterType="SalesService" useGeneratedKeys="true" keyProperty="serviceSalesId">
         INSERT INTO sales_service (
-            serviceSalesId, serviceId, serviceName, empNum, memNum,
+            serviceId, serviceName, empNum, memNum,
             baseCount, actualCount, discount, baseAmount, actualAmount,
             serviceType, refundId, status, createdAt, updatedAt
         ) VALUES (
-            #{serviceSalesId},
             #{serviceId},
             #{serviceName},
             #{empNum},
@@ -51,8 +47,8 @@
             #{serviceType},
             NULL,               <!-- refundId는 PT_LOG 생성 후 업데이트됨 -->
             'ACTIVE',
-            SYSDATE,
-            SYSDATE
+            NOW(),
+            NOW()
         )
     </insert>
 
@@ -60,7 +56,7 @@
     <update id="updateRefundIdBySalesId" parameterType="map">
         UPDATE sales_service
         SET refundId = #{refundId},
-            updatedAt = SYSDATE
+            updatedAt = NOW()
         WHERE serviceSalesId = #{serviceSalesId}
           AND status = 'ACTIVE'
     </update>
@@ -76,7 +72,7 @@
             discount      = #{discount},
             baseAmount    = #{baseAmount},
             actualAmount  = #{actualAmount},
-            updatedAt     = SYSDATE
+            updatedAt     = NOW()
         WHERE serviceSalesId = #{serviceSalesId}
           AND status = 'ACTIVE'
     </update>
@@ -85,7 +81,7 @@
     <update id="deleteSalesService" parameterType="long">
         UPDATE sales_service
         SET status = 'DELETED',
-            updatedAt = SYSDATE
+            updatedAt = NOW()
         WHERE serviceSalesId = #{serviceSalesId}
           AND status = 'ACTIVE'
     </update>
@@ -101,15 +97,15 @@
         <where>
             <!-- 기간 필터 -->
             <if test="startDate != null and startDate != ''">
-                AND ss.createdAt &gt;= TO_DATE(#{startDate}, 'YYYY-MM-DD')
+                AND ss.createdAt &gt;= STR_TO_DATE(#{startDate}, '%Y-%m-%d')
             </if>
             <if test="endDate != null and endDate != ''">
-                AND ss.createdAt &lt;= TO_DATE(#{endDate} || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+                AND ss.createdAt &lt;= STR_TO_DATE(CONCAT(#{endDate}, ' 23:59:59'), '%Y-%m-%d %H:%i:%s')
             </if>
 
             <!-- 품목명 필터 -->
             <if test="serviceNameKeyword != null and serviceNameKeyword != ''">
-                AND UPPER(ss.serviceName) LIKE '%' || UPPER(#{serviceNameKeyword}) || '%'
+                AND UPPER(ss.serviceName) LIKE CONCAT('%', UPPER(#{serviceNameKeyword}), '%')
             </if>
 
             <!-- 회원 필터 -->
@@ -136,32 +132,29 @@
 
     <!-- 서비스 판매 내역 조회 (페이징 적용) -->
     <select id="selectPagedSalesServices" parameterType="map" resultType="map">
-        SELECT *
-        FROM (
-            SELECT
-                ss.SERVICESALESID     AS "serviceSalesId",
-                ss.SERVICEID          AS "serviceId",
-                ss.SERVICENAME        AS "serviceName",
-                ss.SERVICETYPE        AS "serviceType",
-                ss.EMPNUM             AS "empNum",
-                e.EMPNAME             AS "empName",   <!-- 직원명 alias -->
-                ss.MEMNUM             AS "memNum",
-                m.MEMNAME             AS "memName",   <!-- 회원명 alias -->
-                ss.BASECOUNT          AS "baseCount",
-                ss.ACTUALCOUNT        AS "actualCount",
-                ss.DISCOUNT           AS "discount",
-                ss.BASEAMOUNT         AS "baseAmount",
-                ss.ACTUALAMOUNT       AS "actualAmount",
-                ss.STATUS             AS "status",
-                ss.CREATEDAT          AS "createdAt",
-                ss.UPDATEDAT          AS "updatedAt",
-                ROW_NUMBER() OVER (ORDER BY ss.SERVICESALESID DESC) AS rn
-            FROM SALES_SERVICE ss
-            LEFT JOIN EMPLOYEE e ON ss.EMPNUM = e.EMPNUM
-            LEFT JOIN MEMBER  m ON ss.MEMNUM = m.MEMNUM
-            <include refid="baseWhereService"/>
-        )
-        WHERE rn BETWEEN #{startRow} AND #{endRow}
+        SELECT
+            ss.SERVICESALESID     AS "serviceSalesId",
+            ss.SERVICEID          AS "serviceId",
+            ss.SERVICENAME        AS "serviceName",
+            ss.SERVICETYPE        AS "serviceType",
+            ss.EMPNUM             AS "empNum",
+            e.EMPNAME             AS "empName",   <!-- 직원명 alias -->
+            ss.MEMNUM             AS "memNum",
+            m.MEMNAME             AS "memName",   <!-- 회원명 alias -->
+            ss.BASECOUNT          AS "baseCount",
+            ss.ACTUALCOUNT        AS "actualCount",
+            ss.DISCOUNT           AS "discount",
+            ss.BASEAMOUNT         AS "baseAmount",
+            ss.ACTUALAMOUNT       AS "actualAmount",
+            ss.STATUS             AS "status",
+            ss.CREATEDAT          AS "createdAt",
+            ss.UPDATEDAT          AS "updatedAt"
+        FROM SALES_SERVICE ss
+        LEFT JOIN EMPLOYEE e ON ss.EMPNUM = e.EMPNUM
+        LEFT JOIN MEMBER  m ON ss.MEMNUM = m.MEMNUM
+        <include refid="baseWhereService"/>
+        ORDER BY ss.CREATEDAT DESC, ss.SERVICESALESID DESC
+        OFFSET #{startRow}-1 LIMIT (#{endRow}-#{startRow}+1)
     </select>
 
 </mapper>

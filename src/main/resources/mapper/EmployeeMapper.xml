@@ -21,16 +21,12 @@
     </select>
 
     <!-- 직원 등록: sequence 로 PK 발급 + 비번 포함 -->
-    <insert id="insertEmp" parameterType="EmpDto">
-    	<selectKey keyProperty="empNum" resultType="int" order="BEFORE">
-    		SELECT employee_seq.NEXTVAL FROM DUAL
-    	</selectKey>
+    <insert id="insertEmp" parameterType="EmpDto" useGeneratedKeys="true" keyProperty="empNum">
         INSERT INTO EMPLOYEE (
-            EMPNUM, EMPNAME, GENDER, EMPADDRESS, EMPBIRTH,
+            EMPNAME, GENDER, EMPADDRESS, EMPBIRTH,
             EMPPHONE, EMPEMAIL, PASSWORD, HIREDATE, FIREDATE,
             PROFILEIMAGE, EMPMEMO, ROLE
         ) VALUES (
-                #{empNum, jdbcType=NUMERIC},
 				#{empName, jdbcType=VARCHAR},
 				#{gender, jdbcType=VARCHAR},
 				#{empAddress, jdbcType=VARCHAR},
@@ -77,16 +73,16 @@
         FROM EMPLOYEE
         <where>
             <if test="filter == 'all'">
-                (EMPNAME LIKE '%' || #{keyword} || '%' 
-                 OR EMPEMAIL LIKE '%' || #{keyword} || '%')
+                (EMPNAME LIKE CONCAT('%', #{keyword}, '%')
+                 OR EMPEMAIL LIKE CONCAT('%', #{keyword}, '%'))
             </if>
 
             <if test="filter == 'name'">
-                EMPNAME LIKE '%' || #{keyword} || '%'
+                EMPNAME LIKE CONCAT('%', #{keyword}, '%')
             </if>
 
             <if test="filter == 'email'">
-                EMPEMAIL LIKE '%' || #{keyword} || '%'
+                EMPEMAIL LIKE CONCAT('%', #{keyword}, '%')
             </if>
         </where>
         ORDER BY EMPNUM DESC
@@ -122,37 +118,31 @@
 
 	<!-- 직원 검색 + 페이징 -->
 	<select id="getEmpListPaged" resultType="EmpDto">
-	    SELECT *
-	    FROM (
-	        SELECT ROWNUM AS rnum, E.*
-	        FROM (
-	            SELECT 
-	                EMPNUM, EMPNAME, GENDER, EMPADDRESS,
-	                EMPBIRTH, EMPPHONE, EMPEMAIL, HIREDATE,
-	                FIREDATE, PROFILEIMAGE, EMPMEMO, ROLE
-	            FROM EMPLOYEE
-	            <where>
-	                <if test="type == 'all' and keyword != null and keyword != ''">
-	                    (EMPNAME LIKE '%' || #{keyword} || '%' 
-	                    OR EMPPHONE LIKE '%' || #{keyword} || '%')
-	                </if>
-	                <if test="type == 'name' and keyword != null and keyword != ''">
-	                    EMPNAME LIKE '%' || #{keyword} || '%'
-	                </if>
-	                <if test="type == 'phone' and keyword != null and keyword != ''">
-	                    EMPPHONE LIKE '%' || #{keyword} || '%'
-	                </if>
-	                <if test="status == 'ACTIVE'">
-			          FIREDATE IS NULL
-			        </if>
-			        <if test="status == 'RESIGNED'">
-			          FIREDATE IS NOT NULL
-			        </if>
-	            </where>
-	            ORDER BY EMPNUM DESC
-	        ) E
-	    )
-	    WHERE rnum BETWEEN #{start} AND #{end}
+	    SELECT 
+	        EMPNUM, EMPNAME, GENDER, EMPADDRESS,
+	        EMPBIRTH, EMPPHONE, EMPEMAIL, HIREDATE,
+	        FIREDATE, PROFILEIMAGE, EMPMEMO, ROLE
+	    FROM EMPLOYEE
+	    <where>
+	        <if test="type == 'all' and keyword != null and keyword != ''">
+	            (EMPNAME LIKE CONCAT('%', #{keyword}, '%') 
+	            OR EMPPHONE LIKE CONCAT('%', #{keyword}, '%'))
+	        </if>
+	        <if test="type == 'name' and keyword != null and keyword != ''">
+	            EMPNAME LIKE CONCAT('%', #{keyword}, '%')
+	        </if>
+	        <if test="type == 'phone' and keyword != null and keyword != ''">
+	            EMPPHONE LIKE CONCAT('%', #{keyword}, '%')
+	        </if>
+	        <if test="status == 'ACTIVE'">
+	          FIREDATE IS NULL
+	        </if>
+	        <if test="status == 'RESIGNED'">
+	          FIREDATE IS NOT NULL
+	        </if>
+	    </where>
+	    ORDER BY EMPNUM DESC
+	    OFFSET #{start} LIMIT (#{end} - #{start} + 1)
 	</select>
 	
 	
@@ -162,14 +152,14 @@
 	    FROM EMPLOYEE
 	    <where>
 	        <if test="type == 'all' and keyword != null and keyword != ''">
-	            (EMPNAME LIKE '%' || #{keyword} || '%' 
-	            OR EMPPHONE LIKE '%' || #{keyword} || '%')
+	            (EMPNAME LIKE CONCAT('%', #{keyword}, '%') 
+	            OR EMPPHONE LIKE CONCAT('%', #{keyword}, '%'))
 	        </if>
 	        <if test="type == 'name' and keyword != null and keyword != ''">
-	            EMPNAME LIKE '%' || #{keyword} || '%'
+	            EMPNAME LIKE CONCAT('%', #{keyword}, '%')
 	        </if>
 	        <if test="type == 'phone' and keyword != null and keyword != ''">
-	            EMPPHONE LIKE '%' || #{keyword} || '%'
+	            EMPPHONE LIKE CONCAT('%', #{keyword}, '%')
 	        </if>
 	        <if test="status == 'ACTIVE'">
 		      FIREDATE IS NULL
@@ -212,10 +202,10 @@
 	<update id="markResigned" parameterType="map">
 	  UPDATE EMPLOYEE
 	  SET
-	    FIREDATE = NVL(FIREDATE, SYSDATE),
+	    FIREDATE = IFNULL(FIREDATE, NOW()),
 	    EMPMEMO = CASE
 	                WHEN #{reason} IS NOT NULL
-	                THEN NVL(EMPMEMO,'') || CHR(10) || '[퇴사사유] ' || #{reason}
+	                THEN CONCAT(IFNULL(EMPMEMO,''), CHAR(10), '[퇴사사유] ', #{reason})
 	                ELSE EMPMEMO
 	              END
 	  WHERE EMPNUM = #{empNum}
@@ -243,14 +233,14 @@
 	    M.MEMNAME  AS memName,
 	    M.MEMPHONE AS memPhone,
 	    M.MEMEMAIL AS memEmail,
-	    NVL(A.ptRemain,0)  AS ptRemain,
-	    NVL(A.usedCount,0) AS usedCount,
+	    IFNULL(A.ptRemain,0)  AS ptRemain,
+	    IFNULL(A.usedCount,0) AS usedCount,
 	    A.lastUseAt        AS lastUseAt
 	  FROM MINE X
 	  JOIN MEMBER M ON M.MEMNUM = X.MEMNUM
 	  LEFT JOIN AGG A ON A.MEMNUM = X.MEMNUM
-	  WHERE NVL(A.ptRemain,0) > 0
-	    AND NVL(A.usedCount,0) >= 1
+	  WHERE IFNULL(A.ptRemain,0) > 0
+	    AND IFNULL(A.usedCount,0) >= 1
 	  ORDER BY M.MEMNAME
 	</select>
 </mapper>

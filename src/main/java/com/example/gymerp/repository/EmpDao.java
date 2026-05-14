@@ -18,7 +18,9 @@ public interface EmpDao {
     List<EmpDto> searchEmp(@Param("keyword") String keyword,
                            @Param("filter") String filter);
 
-    EmpDto selectAuthByEmail(String email);
+    // EmpDto selectAuthByEmail(String email);
+    EmpDto selectAuthByEmail(@Param("empEmail") String email);
+
     String selectPasswordHashByEmpNum(int empNum);
     int updatePassword(@Param("empNum") int empNum, @Param("hashed") String hashed);
 

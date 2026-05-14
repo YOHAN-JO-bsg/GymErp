@@ -35,16 +35,19 @@
         SELECT v.*,
                ROW_NUMBER() OVER (PARTITION BY v.memNum ORDER BY v.endDate DESC, v.voucherId DESC) rn
         FROM voucher_log v
-      ) WHERE rn = 1
+      ) t WHERE rn = 1
     ),
     last_trainer AS (
-      SELECT memNum,
-             MAX(empNum) KEEP (DENSE_RANK LAST ORDER BY createdAt, usageId) AS empNum
-      FROM pt_log
-      GROUP BY memNum
+      SELECT memNum, empNum
+      FROM (
+        SELECT memNum, empNum,
+               ROW_NUMBER() OVER (PARTITION BY memNum ORDER BY createdAt DESC, usageId DESC) as rn
+        FROM pt_log
+      ) t
+      WHERE rn = 1
     ),
     pt_balance AS (
-      SELECT memNum, NVL(SUM(countChange),0) AS ptRemain
+      SELECT memNum, IFNULL(SUM(countChange),0) AS ptRemain
       FROM pt_log
       GROUP BY memNum
     )
@@ -57,12 +60,12 @@
       pb.ptRemain  AS ptRemain,
       CASE
         WHEN lv.endDate IS NULL THEN '미사용중'
-        WHEN lv.endDate &lt; TRUNC(SYSDATE) THEN '미사용중'
+        WHEN lv.endDate &lt; CURDATE() THEN '미사용중'
         ELSE '사용중'
       END AS membershipStatus,
       CASE
         WHEN lv.endDate IS NULL THEN 1
-        WHEN lv.endDate &lt; TRUNC(SYSDATE) THEN 1
+        WHEN lv.endDate &lt; CURDATE() THEN 1
         ELSE 0
       END AS statusSort  -- 1=미사용중 먼저. 사용중 먼저로 바꾸려면 0/1을 뒤집거나 ORDER BY를 ASC로 변경
     FROM MEMBER m
@@ -75,10 +78,10 @@
         OR UPPER(#{status}) = 'ALL'
         OR (UPPER(#{status}) = 'USING'
               AND lv.endDate IS NOT NULL
-              AND lv.endDate >= TRUNC(SYSDATE)
+              AND lv.endDate >= CURDATE()
            )
         OR (UPPER(#{status}) = 'NOT_USING'
-              AND (lv.endDate IS NULL OR lv.endDate &lt; TRUNC(SYSDATE))
+              AND (lv.endDate IS NULL OR lv.endDate &lt; CURDATE())
            )
       )
     ORDER BY statusSort DESC, m.memCreated DESC
@@ -92,16 +95,19 @@
         SELECT v.*,
                ROW_NUMBER() OVER (PARTITION BY v.memNum ORDER BY v.endDate DESC, v.voucherId DESC) rn
         FROM voucher_log v
-      ) WHERE rn = 1
+      ) t WHERE rn = 1
     ),
     last_trainer AS (
-      SELECT memNum,
-             MAX(empNum) KEEP (DENSE_RANK LAST ORDER BY createdAt, usageId) AS empNum
-      FROM pt_log
-      GROUP BY memNum
+      SELECT memNum, empNum
+      FROM (
+        SELECT memNum, empNum,
+               ROW_NUMBER() OVER (PARTITION BY memNum ORDER BY createdAt DESC, usageId DESC) as rn
+        FROM pt_log
+      ) t
+      WHERE rn = 1
     ),
     pt_balance AS (
-      SELECT memNum, NVL(SUM(countChange),0) AS ptRemain
+      SELECT memNum, IFNULL(SUM(countChange),0) AS ptRemain
       FROM pt_log
       GROUP BY memNum
     )
@@ -114,7 +120,7 @@
       pb.ptRemain  AS ptRemain,
       CASE
         WHEN lv.endDate IS NULL THEN '미사용중'
-        WHEN lv.endDate &lt; TRUNC(SYSDATE) THEN '미사용중'
+        WHEN lv.endDate &lt; CURDATE() THEN '미사용중'
         ELSE '사용중'
       END AS membershipStatus
     FROM MEMBER m
@@ -142,23 +148,19 @@
     </select>
 
     <!-- 회원 등록 -->
-    <insert id="insert" parameterType="MemberDto">
-        <selectKey keyProperty="memNum" resultType="int" order="BEFORE">
-            SELECT MEMBER_SEQ.NEXTVAL FROM DUAL
-        </selectKey>
+    <insert id="insert" parameterType="MemberDto" useGeneratedKeys="true" keyProperty="memNum">
         INSERT INTO MEMBER (
-            memNum, memName, memGender, memBirthday, memPhone,
+            memName, memGender, memBirthday, memPhone,
             memEmail, memAddr, memCreated, memUpdated, memProfile, memNote
         ) VALUES (
-            #{memNum},
             #{memName,    jdbcType=VARCHAR},
             #{memGender,  jdbcType=VARCHAR},
             #{memBirthday,jdbcType=DATE},
             #{memPhone,   jdbcType=VARCHAR},
             #{memEmail,   jdbcType=VARCHAR},
             #{memAddr,    jdbcType=VARCHAR},
-            SYSTIMESTAMP,
-            SYSTIMESTAMP,
+            CURRENT_TIMESTAMP,
+            CURRENT_TIMESTAMP,
             #{memProfile, jdbcType=VARCHAR},
             #{memNote,    jdbcType=VARCHAR}
         )
@@ -176,7 +178,7 @@
             memAddr     = #{memAddr,    jdbcType=VARCHAR},
             memProfile  = #{memProfile, jdbcType=VARCHAR},
             memNote     = #{memNote,    jdbcType=VARCHAR},
-            memUpdated  = SYSTIMESTAMP
+            memUpdated  = CURRENT_TIMESTAMP
         WHERE memNum = #{memNum}
     </update>
 
@@ -213,7 +215,7 @@
     <update id="updateProfile" parameterType="MemberDto">
         UPDATE MEMBER
         SET memProfile = #{memProfile, jdbcType=VARCHAR},
-            memUpdated = SYSTIMESTAMP
+            memUpdated = CURRENT_TIMESTAMP
         WHERE memNum = #{memNum}
     </update>
 
@@ -223,9 +225,9 @@
                memAddr, memCreated, memUpdated, memProfile, memNote
         FROM MEMBER
         WHERE
-            LOWER(memName)  LIKE LOWER('%' || #{keyword} || '%')
-        OR  LOWER(memPhone) LIKE LOWER('%' || #{keyword} || '%')
-        OR  LOWER(memEmail) LIKE LOWER('%' || #{keyword} || '%')
+            LOWER(memName)  LIKE CONCAT('%', LOWER(#{keyword}), '%')
+        OR  LOWER(memPhone) LIKE CONCAT('%', LOWER(#{keyword}), '%')
+        OR  LOWER(memEmail) LIKE CONCAT('%', LOWER(#{keyword}), '%')
         ORDER BY memCreated DESC
     </select>
 
