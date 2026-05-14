@@ -185,8 +185,8 @@ public class EmpController {
     ) {
         Map<String, Object> result = new HashMap<>();
 
-        int start = (page - 1) * size + 1;
-        int end = page * size;
+        int start = (page - 1) * size;  // OFFSET (0부터 시작)
+        int end = size;                   // LIMIT
 
         // 상태 포함 버전을 호출
         int totalCount = empService.getTotalCount(type, keyword, status);

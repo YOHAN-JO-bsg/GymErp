@@ -142,7 +142,7 @@
 	        </if>
 	    </where>
 	    order by empnum desc
-	    limit (#{end} - #{start} + 1) offset #{start}
+	    limit #{end} offset #{start}
 	</select>
 	
 	
