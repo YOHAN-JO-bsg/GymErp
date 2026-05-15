@@ -154,7 +154,7 @@
         left join member  m on ss.memnum = m.memnum
         <include refid="baseWhereService"/>
         order by ss.createdat desc, ss.servicesalesid desc
-        limit (#{endRow}-#{startRow}+1) offset #{startRow}-1
+        limit #{endRow} offset #{startRow}
     </select>
 
 </mapper>

@@ -114,8 +114,8 @@ public class SalesServiceController {
             @RequestParam(required = false) Integer memNum,
             @RequestParam(required = false) Integer empNum) {
 
-        int startRow = (page - 1) * limit + 1;
-        int endRow = page * limit;
+        int offset = (page - 1) * limit;  // OFFSET
+        int size = limit;                  // LIMIT 개수
 
         Map<String, Object> params = new HashMap<>();
         params.put("startDate", startDate);
@@ -123,8 +123,8 @@ public class SalesServiceController {
         params.put("serviceNameKeyword", serviceNameKeyword);
         params.put("memNum", memNum);
         params.put("empNum", empNum);
-        params.put("startRow", startRow);
-        params.put("endRow", endRow);
+        params.put("startRow", offset);
+        params.put("endRow", size);
 
         List<Map<String, Object>> list = salesServiceService.getPagedSalesServices(params);
         int totalCount = salesServiceService.getSalesServiceCount(params);

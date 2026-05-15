@@ -35,11 +35,11 @@ public class ModalController {
         dto.setKeyword(keyword);
         dto.setCategoryCodes(categoryCodes);
 
-        // 페이징 계산 (Oracle ROWNUM)
-        int startRow = (page - 1) * limit + 1;
-        int endRow = page * limit;
-        dto.setStartRowNum(startRow);
-        dto.setEndRowNum(endRow);
+        // 페이징 계산 (MySQL)
+        int offset = (page - 1) * limit;  // OFFSET
+        int size = limit;                  // LIMIT 개수
+        dto.setStartRowNum(offset);
+        dto.setEndRowNum(size);
 
         // Service 호출
         List<ServiceDto> list = modalService.getServiceModalList(dto);

@@ -31,7 +31,7 @@
 		  order by
 		    case when s.codebid like '%PT%' then 0 else 1 end,
 		    s.name desc
-		  limit (#{endRowNum} - #{startRowNum} + 1) offset #{startRowNum}
+		  limit #{endRowNum} offset #{startRowNum}
 		</select>
 
 <!-- ========================================================= [서비스 상품 선택 모달 끝] ========================================================= -->	
@@ -75,7 +75,7 @@
 	      and upper(p.name) like concat('%', upper(#{keyword}), '%')
 	    </if>
 	  order by p.name desc
-	  limit (#{endRow} - #{startRow} + 1) offset #{startRow}
+	  limit #{endRow} offset #{startRow}
 	</select>
 	
 	<select id="getProductModalCount" parameterType="map" resultType="int">
@@ -109,7 +109,7 @@
 	         or upper(e.empemail) like concat('%', upper(#{keyword}), '%') )
 	    </if>
 	  order by e.empname asc
-	  limit #{endRow} - #{startRow} + 1 offset #{startRow}
+	  limit #{endRow} offset #{startRow}
 	</select>
 	
 	<!-- 전체 개수 -->
