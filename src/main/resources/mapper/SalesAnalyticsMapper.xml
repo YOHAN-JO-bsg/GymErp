@@ -14,12 +14,11 @@
     =============================== -->
     <select id="selectTotalSalesChart" resultType="map">
         
-
         select 'PT' as label, ifnull(sum(actualamount), 0) as total_sales
         from sales_service
         where upper(status) = 'ACTIVE'
           and upper(servicetype) = 'PT'
-          and createdat between now() - 30 and now()
+          and createdat between date_sub(now(), interval 30 day) and now()
 
         union all
 
@@ -27,7 +26,7 @@
         from sales_service
         where upper(status) = 'ACTIVE'
           and upper(servicetype) = 'VOUCHER'
-          and createdat between now() - 30 and now()
+          and createdat between date_sub(now(), interval 30 day) and now()
 
         union all
 
@@ -35,7 +34,7 @@
         from sales_item
         where upper(status) = 'ACTIVE'
           and upper(producttype) = 'CLOTHES'
-          and createdat between now() - 30 and now()
+          and createdat between date_sub(now(), interval 30 day) and now()
 
         union all
 
@@ -43,7 +42,7 @@
         from sales_item
         where upper(status) = 'ACTIVE'
           and upper(producttype) = 'DRINK'
-          and createdat between now() - 30 and now()
+          and createdat between date_sub(now(), interval 30 day) and now()
 
         union all
 
@@ -51,7 +50,7 @@
         from sales_item
         where upper(status) = 'ACTIVE'
           and upper(producttype) = 'SUPPLEMENTS'
-          and createdat between now() - 30 and now()
+          and createdat between date_sub(now(), interval 30 day) and now()
     </select>
 
 
@@ -63,12 +62,12 @@
     =============================== -->
     <select id="selectServiceSalesChart" resultType="map">
         select 
-            upper(service_type) as label,
+            upper(servicetype) as label,
             ifnull(sum(actualamount), 0) as total_sales
         from sales_service
         where upper(status) = 'ACTIVE'
-          and upper(service_type) in ('PT', 'VOUCHER')
-        group by upper(service_type)
+          and upper(servicetype) in ('PT', 'VOUCHER')
+        group by upper(servicetype)
         order by label
     </select>
 
@@ -80,12 +79,12 @@
     =============================== -->
     <select id="selectItemSalesChart" resultType="map">
         select 
-            upper(product_type) as label,
+            upper(producttype) as label,
             ifnull(sum(totalamount), 0) as total_sales
         from sales_item
         where upper(status) = 'ACTIVE'
-          and upper(product_type) in ('CLOTHES', 'DRINK', 'SUPPLEMENTS')
-        group by upper(product_type)
+          and upper(producttype) in ('CLOTHES', 'DRINK', 'SUPPLEMENTS')
+        group by upper(producttype)
         order by label
     </select>
 
@@ -157,8 +156,8 @@
     =============================== -->
     <select id="selectActualSales3Years" resultType="map">
         select
-            extract(year from s.sales_date) as year,
-            extract(month from s.sales_date) as month,
+            extract(year from s.createdat) as year,
+            extract(month from s.createdat) as month,
             sum(s.totalamount) as totalamount,
             sum(s.actualamount) as actualamount
         from (
