@@ -28,11 +28,10 @@ public class ServiceServiceImpl implements ServiceService{
 		//하단 페이지를 몇개씩 표시할 것인지
 		final int PAGE_DISPLAY_COUNT=5;
 
-		//보여줄 페이지의 시작 ROWNUM
-		int startRowNum=1+(pageNum-1)*PAGE_ROW_COUNT; //공차수열
-		//보여줄 페이지의 끝 ROWNUM
-		int endRowNum=pageNum*PAGE_ROW_COUNT; //등비수열 
-		
+		//보여줄 페이지의 OFFSET (MySQL)
+		int offset = (pageNum - 1) * PAGE_ROW_COUNT;
+		//보여줄 페이지의 LIMIT (개수)
+		int limit = PAGE_ROW_COUNT;		
 		//하단 시작 페이지 번호 (정수를 정수로 나누면 소수점이 버려진 정수가 나온다)
 		int startPageNum = 1 + ((pageNum-1)/PAGE_DISPLAY_COUNT)*PAGE_DISPLAY_COUNT;
 		//하단 끝 페이지 번호
@@ -47,9 +46,9 @@ public class ServiceServiceImpl implements ServiceService{
 		if(endPageNum > totalPageCount){
 			endPageNum=totalPageCount; //보정해 준다. 
 		}
-		// startRowNum 과 endRowNum 을 ProductDto 객체에 담아서
-		dto.setStartRowNum(startRowNum);
-		dto.setEndRowNum(endRowNum);
+		// startRowNum(offset) 과 endRowNum(limit) 을 ProductDto 객체에 담아서
+		dto.setStartRowNum(offset);
+		dto.setEndRowNum(limit);
 		dto.setSortBy(sortBy);
 		dto.setDirection(direction);
 		

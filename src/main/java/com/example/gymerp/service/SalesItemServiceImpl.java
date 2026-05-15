@@ -47,10 +47,10 @@ public class SalesItemServiceImpl implements SalesItemService {
 			params.put("productNameKeyword", productNameKeyword);
 		}
 		params.put("empNum", empNum);
-		int startRow = (page - 1) * size + 1;
-		int endRow = page * size;
-		params.put("startRow", startRow);
-		params.put("endRow", endRow);
+		int offset = (page - 1) * size;  // OFFSET
+		int limit = size;                // LIMIT 개수
+		params.put("startRow", offset);
+		params.put("endRow", limit);
 
 		List<SalesItemDto> salesItems = salesItemDao.selectAllSalesItems(params);
 		int totalCount = salesItemDao.selectSalesItemCount(params);

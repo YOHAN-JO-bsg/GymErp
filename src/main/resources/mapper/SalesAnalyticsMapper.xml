@@ -162,14 +162,14 @@
             sum(s.totalamount) as totalamount,
             sum(s.actualamount) as actualamount
         from (
-            select sales_date, totalamount, actualamount from sales_service
+            select createdat, totalamount, actualamount from sales_service
             union all
-            select sales_date, totalamount, totalamount as actualamount from sales_item
+            select createdat, totalamount, totalamount as actualamount from sales_item
         ) s
-        where extract(year from s.sales_date)
+        where extract(year from s.createdat)
               between extract(year from now()) - 2
               and extract(year from now())
-        group by extract(year from s.sales_date), extract(month from s.sales_date)
+        group by extract(year from s.createdat), extract(month from s.createdat)
         order by year, month
     </select>
 
@@ -219,7 +219,7 @@
                 p.predicted_sales as predicted_sales
             from ai_sales_prediction p
             where p.predict_year = extract(year from now()) + 1
-        )
+        ) as t
         group by year, month
         order by year, month
     </select>
@@ -252,7 +252,7 @@
             select memnum, sum(countchange) as total_remain
             from pt_log
             group by memnum
-        )
+        ) as t
     </select>
 
 </mapper>

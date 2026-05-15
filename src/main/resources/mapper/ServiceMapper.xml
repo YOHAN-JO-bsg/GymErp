@@ -42,7 +42,7 @@
                 <otherwise> asc </otherwise>
             </choose>
         </if>
-		limit (#{endRowNum} - #{startRowNum} + 1) offset #{startRowNum}
+		limit #{endRowNum} offset #{startRowNum}
 	</select>
 	
 	<select id="getCount" parameterType="serviceDto" resultType="int">

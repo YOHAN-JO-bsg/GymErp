@@ -79,7 +79,7 @@
 		left join employee e on si.empnum = e.empnum
 		<include refid="baseWhereProduct" />
 		order by si.createdat desc, si.itemsalesid desc
-		limit (#{endRow}-#{startRow}+1) offset #{startRow}-1
+		limit #{endRow} offset #{startRow}
 	</select>
 
 	<!-- 단건 상세 -->
