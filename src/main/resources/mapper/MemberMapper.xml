@@ -133,16 +133,22 @@
 	
     <!-- 전체 회원 조회 -->
     <select id="selectAll" resultType="MemberDto">
-        select memnum, memname, memgender, membirthday, memphone, mememail,
-               memaddr, memcreated, memupdated, memprofile, memnote
+        select 
+            memnum as memNum, memname as memName, memgender as memGender, 
+            membirthday as memBirthday, memphone as memPhone, mememail as memEmail,
+            memaddr as memAddr, memcreated as memCreated, memupdated as memUpdated, 
+            memprofile as memProfile, memnote as memNote
         from member
         order by memcreated desc
     </select>
 
     <!-- 회원 상세 조회 -->
     <select id="getByNum" parameterType="int" resultType="MemberDto">
-        select memnum, memname, memgender, membirthday, memphone, mememail,
-               memaddr, memcreated, memupdated, memprofile, memnote
+        select 
+            memnum as memNum, memname as memName, memgender as memGender, 
+            membirthday as memBirthday, memphone as memPhone, mememail as memEmail,
+            memaddr as memAddr, memcreated as memCreated, memupdated as memUpdated, 
+            memprofile as memProfile, memnote as memNote
         from member
         where memnum = #{memNum}
     </select>
@@ -221,8 +227,11 @@
 
     <!-- 회원 검색 -->
     <select id="search" resultType="MemberDto">
-        select memnum, memname, memgender, membirthday, memphone, mememail,
-               memaddr, memcreated, memupdated, memprofile, memnote
+        select 
+            memnum as memNum, memname as memName, memgender as memGender, 
+            membirthday as memBirthday, memphone as memPhone, mememail as memEmail,
+            memaddr as memAddr, memcreated as memCreated, memupdated as memUpdated, 
+            memprofile as memProfile, memnote as memNote
         from member
         where
             lower(memname)  like concat('%', lower(#{keyword}), '%')

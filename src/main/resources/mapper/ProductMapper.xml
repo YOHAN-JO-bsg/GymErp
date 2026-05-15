@@ -19,12 +19,12 @@
 
 	<select id="selectPage" parameterType="productDto" resultType="productDto">
 		select
-		    pr.productid,
+		    pr.productid   as productId,
 		    pr.name,
 		    pr.price,
-		    pr.isactive,
-		    pr.codebid,
-		    cb.name as codebname,
+		    pr.isactive    as isActive,
+		    pr.codebid     as codeBId,
+		    cb.name        as codeBName,
 		    (ifnull(pi.total_in, 0) - ifnull(sa.total_out, 0) - ifnull(si.total_sales, 0)) as quantity
 		from product pr
 		left join codeb cb on pr.codebid = cb.codebid
@@ -64,12 +64,12 @@
 	
 	<select id="selectPageWithoutQuantity" parameterType="productDto" resultType="productDto">
 		select
-		    pr.productid,
+		    pr.productid   as productId,
 		    pr.name,
 		    pr.price,
-		    pr.isactive,
-		    pr.codebid,
-		    cb.name as codebname
+		    pr.isactive    as isActive,
+		    pr.codebid     as codeBId,
+		    cb.name        as codeBName
 		from product pr
 		left join codeb cb on pr.codebid = cb.codebid
 		<include refid="search"/>
@@ -112,7 +112,17 @@
 	</update>
 	
 	<select id="getByNum" parameterType="int" resultType="productDto">
-		select pr.codebid, cb.name as codebname, pr.createdat, pr.isactive, pr.name, pr.updatedat, pr.profileimage, pr.note, pr.price
+		select 
+		    pr.productid   as productId,
+		    pr.codebid     as codeBId, 
+		    cb.name        as codeBName, 
+		    pr.createdat   as createdAt, 
+		    pr.isactive    as isActive, 
+		    pr.name, 
+		    pr.updatedat   as updatedAt, 
+		    pr.profileimage as profileImage, 
+		    pr.note, 
+		    pr.price
 		from product pr
 		left join codeb cb on pr.codebid = cb.codebid 
 		where productid=#{productId}

@@ -60,19 +60,19 @@
 	<select id="selectAllSalesItems" parameterType="map"
 		resultType="com.example.gymerp.dto.SalesItemDto">
 		select
-		si.itemsalesid,
-		si.productid,
-		p.name as productname,
-		cb.name as categoryname,
-		si.producttype,
-		si.empnum,
-		e.empname as empname,      <!-- ✅ 판매자 이름으로 변경 -->
+		si.itemsalesid    as itemSalesId,
+		si.productid      as productId,
+		p.name            as productName,
+		cb.name           as categoryName,
+		si.producttype    as productType,
+		si.empnum         as empNum,
+		e.empname         as empName,
 		si.quantity,
-		si.unitprice,
-		si.totalamount,
+		si.unitprice      as unitPrice,
+		si.totalamount    as totalAmount,
 		si.status,
-		si.createdat,
-		si.updatedat
+		si.createdat      as createdAt,
+		si.updatedat      as updatedAt
 		from sales_item si
 		join product p on si.productid = p.productid
 		join codeb cb on p.codebid = cb.codebid
@@ -86,19 +86,19 @@
 	<select id="selectSalesItemById" parameterType="long"
 		resultType="com.example.gymerp.dto.SalesItemDto">
 		select
-		si.itemsalesid,
-		si.productid,
-		p.name as productname,
-		cb.name as categoryname,
-		si.producttype,
-		si.empnum,
-		e.empname as empname,        <!-- ✅ 판매자 이름으로 변경 -->
+		si.itemsalesid    as itemSalesId,
+		si.productid      as productId,
+		p.name            as productName,
+		cb.name           as categoryName,
+		si.producttype    as productType,
+		si.empnum         as empNum,
+		e.empname         as empName,
 		si.quantity,
-		si.unitprice,
-		si.totalamount,
+		si.unitprice      as unitPrice,
+		si.totalamount    as totalAmount,
 		si.status,
-		si.createdat,
-		si.updatedat
+		si.createdat      as createdAt,
+		si.updatedat      as updatedAt
 		from sales_item si
 		join product p on si.productid = p.productid
 		join codeb cb on p.codebid = cb.codebid

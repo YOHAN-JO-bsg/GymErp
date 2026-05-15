@@ -10,7 +10,22 @@
 
     <!-- 전체 서비스 판매 내역 조회 -->
     <select id="selectAllSalesServices" resultType="SalesService">
-        select *
+        select
+            servicesalesid as serviceSalesId,
+            serviceid as serviceId,
+            servicename as serviceName,
+            empnum as empNum,
+            memnum as memNum,
+            refundid as refundId,
+            basecount as baseCount,
+            actualcount as actualCount,
+            discount as discount,
+            baseamount as baseAmount,
+            actualamount as actualAmount,
+            servicetype as serviceType,
+            status as status,
+            createdat as createdAt,
+            updatedat as updatedAt
         from sales_service
         where status = 'ACTIVE'
         order by createdat desc
@@ -18,7 +33,22 @@
 
     <!-- 단일 서비스 판매 내역 조회 -->
     <select id="selectSalesServiceById" parameterType="long" resultType="SalesService">
-        select *
+        select
+            servicesalesid as serviceSalesId,
+            serviceid as serviceId,
+            servicename as serviceName,
+            empnum as empNum,
+            memnum as memNum,
+            refundid as refundId,
+            basecount as baseCount,
+            actualcount as actualCount,
+            discount as discount,
+            baseamount as baseAmount,
+            actualamount as actualAmount,
+            servicetype as serviceType,
+            status as status,
+            createdat as createdAt,
+            updatedat as updatedAt
         from sales_service
         where servicesalesid = #{serviceSalesId}
     </select>
@@ -133,28 +163,40 @@
     <!-- 서비스 판매 내역 조회 (페이징 적용) -->
     <select id="selectPagedSalesServices" parameterType="map" resultType="map">
         select
-            ss.servicesalesid     as "servicesalesid",
-            ss.serviceid          as "serviceid",
-            ss.servicename        as "servicename",
-            ss.servicetype        as "servicetype",
-            ss.empnum             as "empnum",
-            e.empname             as "empname",   <!-- 직원명 alias -->
-            ss.memnum             as "memnum",
-            m.memname             as "memname",   <!-- 회원명 alias -->
-            ss.basecount          as "basecount",
-            ss.actualcount        as "actualcount",
+            ss.servicesalesid     as "serviceSalesId",
+            ss.serviceid          as "serviceId",
+            ss.servicename        as "serviceName",
+            ss.servicetype        as "serviceType",
+            ss.empnum             as "empNum",
+            e.empname             as "empName",
+            ss.memnum             as "memNum",
+            m.memname             as "memName",
+            ss.basecount          as "baseCount",
+            ss.actualcount        as "actualCount",
             ss.discount           as "discount",
-            ss.baseamount         as "baseamount",
-            ss.actualamount       as "actualamount",
+            ss.baseamount         as "baseAmount",
+            ss.actualamount       as "actualAmount",
             ss.status             as "status",
-            ss.createdat          as "createdat",
-            ss.updatedat          as "updatedat"
+            ss.createdat          as "createdAt",
+            ss.updatedat          as "updatedAt"
         from sales_service ss
         left join employee e on ss.empnum = e.empnum
         left join member  m on ss.memnum = m.memnum
         <include refid="baseWhereService"/>
         order by ss.createdat desc, ss.servicesalesid desc
         limit #{endRow} offset #{startRow}
+    </select>
+    <!-- 서비스 매출 통계 조회 -->
+    <select id="selectServiceSalesAnalytics" parameterType="map" resultType="map">
+        select
+            ss.serviceid          as "serviceId",
+            ss.servicename        as "serviceName",
+            sum(ss.actualcount)   as "totalCount",
+            sum(ss.actualamount)  as "totalSalesAmount"
+        from sales_service ss
+        <include refid="baseWhereService"/>
+        group by ss.serviceid, ss.servicename
+        order by "totalSalesAmount" desc
     </select>
 
 </mapper>
