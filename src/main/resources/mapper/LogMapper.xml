@@ -239,11 +239,11 @@
 	=========================================================== -->
 	<select id="selectPagedVoucherLogs" parameterType="map" resultType="map">
 	    select 
-	        v.voucherid           as voucherid,
-	        v.memnum              as memnum,
-	        v.membername          as membername,
-	        date_format(v.startdate, '%Y-%m-%d') as startdate,
-	        date_format(v.enddate, '%Y-%m-%d')   as enddate,
+	        v.voucherid           as voucherId,
+	        v.memnum              as memNum,
+	        v.membername          as memberName,
+	        date_format(v.startdate, '%Y-%m-%d') as startDate,
+	        date_format(v.enddate, '%Y-%m-%d')   as endDate,
 	        case 
 	            when v.enddate >= curdate() then '유효'
 	            else '만료'
@@ -310,14 +310,14 @@
 	=========================================================== -->
 	<select id="selectPagedPtLogs" parameterType="map" resultType="map">
 	    select 
-	        p.usageid,
-	        p.memnum,
-	        m.memname as membername,
-	        p.empnum,
-	        e.empname as empname,
-	        p.status,
-	        p.countchange,
-	        date_format(p.createdat, '%Y-%m-%d %H:%i:%s') as createdat
+	        p.usageid             as usageId,
+	        p.memnum              as memNum,
+	        m.memname             as memberName,
+	        p.empnum              as empNum,
+	        e.empname             as empName,
+	        p.status              as status,
+	        p.countchange         as countChange,
+	        date_format(p.createdat, '%Y-%m-%d %H:%i:%s') as createdAt
 	    from pt_log p
 	    left join member m on p.memnum = m.memnum
 	    left join employee e on p.empnum = e.empnum
